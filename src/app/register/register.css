@@ -1,0 +1,42 @@
+/* Shared form styles come from login.css. These rules fit the longer form on one screen. */
+.title {
+  font-size: 40px;
+}
+
+.form {
+  margin-top: 24px;
+}
+
+.group {
+  margin-bottom: 16px;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.row .group {
+  min-width: 0;
+}
+
+.message {
+  min-height: 24px;
+}
+
+.submit {
+  height: 48px;
+  margin-top: 4px;
+}
+
+.switch {
+  margin-top: 16px;
+}
+
+@media (max-width: 479px) {
+  .row {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+}

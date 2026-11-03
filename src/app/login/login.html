@@ -1,0 +1,33 @@
+<app-auth-shell>
+  <h1 class="title">Log in</h1>
+
+
+  <form class="form" [formGroup]="form" (ngSubmit)="submit()" novalidate>
+    <div class="group">
+      <label class="label" for="username">Username</label>
+      <input class="field" id="username" type="text" formControlName="username" autocomplete="username" />
+    </div>
+    <div class="group">
+      <label class="label" for="password">Password</label>
+      <input class="field" id="password" type="password" formControlName="password" autocomplete="current-password" />
+    </div>
+
+    <div class="message">
+      @if (errorMessage()) {
+        <p class="error" role="alert">{{ errorMessage() }}</p>
+      }
+      @if (justRegistered() && !errorMessage() && !loggedInAs()) {
+        <p class="success" role="status">Account created. Please log in.</p>
+      }
+      @if (loggedInAs()) {
+        <p class="success" role="status">Logged in as {{ loggedInAs() }}</p>
+      }
+    </div>
+
+    <button class="submit" type="submit" [disabled]="submitting()">
+      {{ submitting() ? 'Logging in...' : 'Log in' }}
+    </button>
+  </form>
+
+  <p class="switch">New here? <a routerLink="/register">Register</a></p>
+</app-auth-shell>
