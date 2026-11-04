@@ -23,7 +23,7 @@ function sample(
     cardStage,
     cardElement,
     cardPicture: SAMPLE_PICTURE,
-    cardDescription: null,
+    cardDescription: `Sample description for a ${rarity} ${cardElement} card. The seller's own notes will appear here.`,
   };
 }
 

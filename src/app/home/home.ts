@@ -2,12 +2,14 @@ import { CurrencyPipe } from '@angular/common';
 import { Component, computed, inject, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
+import { CardDetail } from '../card-detail/card-detail';
+import { CardListing } from '../cards/card-listing';
 import { CardService } from '../cards/card.service';
 import { SiteHeader } from '../site-header/site-header';
 
 @Component({
   selector: 'app-home',
-  imports: [CurrencyPipe, RouterLink, SiteHeader],
+  imports: [CardDetail, CurrencyPipe, RouterLink, SiteHeader],
   templateUrl: './home.html',
   styleUrl: './home.css'
 })
@@ -16,6 +18,7 @@ export class Home {
 
   protected readonly search = signal('');
   protected readonly selectedElement = signal<string | null>(null);
+  protected readonly selectedCard = signal<CardListing | null>(null);
 
   protected readonly elements = computed(() => [
     ...new Set(this.listings().flatMap((card) => (card.cardElement ? [card.cardElement] : []))),

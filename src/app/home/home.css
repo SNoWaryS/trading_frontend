@@ -130,6 +130,25 @@
   transition: box-shadow 250ms ease, transform 250ms ease;
 }
 
+.listing {
+  cursor: pointer;
+}
+
+.name-button {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.name-button:focus-visible {
+  outline: 2px solid var(--forest);
+  outline-offset: 2px;
+}
+
 .listing:hover {
   box-shadow: 0 24px 40px -24px rgb(36 56 42 / 35%);
   transform: translateY(-3px);

@@ -8,7 +8,13 @@ describe('Home', () => {
   const element = () => fixture.nativeElement as HTMLElement;
   const names = () => Array.from(element().querySelectorAll('.name')).map((name) => name.textContent);
 
+  const dialog = () => element().querySelector('dialog');
+  const nameButton = () => element().querySelector<HTMLButtonElement>('.name-button')!;
+
   beforeEach(async () => {
+    HTMLDialogElement.prototype.showModal = vi.fn();
+    HTMLDialogElement.prototype.close = vi.fn();
+
     await TestBed.configureTestingModule({
       imports: [Home],
       providers: [provideRouter([])],
@@ -46,5 +52,45 @@ describe('Home', () => {
 
     expect(names()).toEqual([]);
     expect(element().querySelector('.empty')?.textContent).toContain('No cards match');
+  });
+
+  it('shows the card details and seller when a card is clicked', async () => {
+    element().querySelector<HTMLElement>('.listing')!.click();
+    await fixture.whenStable();
+
+    const text = dialog()?.textContent;
+    expect(HTMLDialogElement.prototype.showModal).toHaveBeenCalled();
+    expect(text).toContain('Sample Card 01');
+    expect(text).toContain('seller1');
+    expect(text).toContain('1,250');
+    expect(text).toContain('1,400');
+    expect(text).toContain('AR');
+    expect(text).toContain('Water');
+    expect(text).toContain('Basic');
+    expect(text).toContain('Sample description');
+  });
+
+  it('opens the details from the card name button', async () => {
+    nameButton().click();
+    await fixture.whenStable();
+
+    expect(dialog()).not.toBeNull();
+  });
+
+  it('closes the details from the close button', async () => {
+    nameButton().click();
+    await fixture.whenStable();
+
+    dialog()!.querySelector<HTMLButtonElement>('.close')!.click();
+    await fixture.whenStable();
+
+    expect(dialog()).toBeNull();
+  });
+
+  it('does not open the details when Buy is clicked', async () => {
+    element().querySelector<HTMLButtonElement>('.buy')!.click();
+    await fixture.whenStable();
+
+    expect(dialog()).toBeNull();
   });
 });
