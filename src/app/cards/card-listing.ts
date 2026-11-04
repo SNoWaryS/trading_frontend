@@ -12,3 +12,9 @@ export interface CardListing {
   cardPicture: string | null;
   cardDescription: string | null;
 }
+
+export type NewCardListing = Omit<CardListing, 'cardId' | 'sellerName'>;
+
+export function cardMeta(card: CardListing): string {
+  return [card.rarity, card.cardElement, card.cardStage].filter(Boolean).join(' · ');
+}

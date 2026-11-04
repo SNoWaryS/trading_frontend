@@ -1,6 +1,43 @@
 <app-site-header />
 
 <main class="page">
-  <h1 class="title">Sell a card</h1>
-  <p class="subtitle">This page is coming soon.</p>
+  <section class="intro">
+    <div>
+      <h1 class="title">My cards for sale</h1>
+      <p class="subtitle">{{ listings().length }} cards listed</p>
+    </div>
+    <button class="add" type="button" (click)="adding.set(true)">Add card</button>
+  </section>
+
+  @if (listings().length) {
+    <ul class="grid">
+      @for (card of listings(); track card.cardId) {
+        <li class="listing">
+          <div class="picture">
+            @if (card.cardPicture) {
+              <img [src]="card.cardPicture" [alt]="card.cardName" loading="lazy" />
+            }
+          </div>
+
+          <div class="details">
+            <p class="meta">{{ cardMeta(card) }}</p>
+            <h2 class="name">{{ card.cardName }}</h2>
+
+            <div class="prices">
+              <p class="price">{{ card.cardPrice | currency: 'THB' : 'symbol-narrow' : '1.0-0' }}</p>
+              @if (card.referencePrice !== null) {
+                <p class="reference">Ref. {{ card.referencePrice | currency: 'THB' : 'symbol-narrow' : '1.0-0' }}</p>
+              }
+            </div>
+          </div>
+        </li>
+      }
+    </ul>
+  } @else {
+    <p class="empty">You have no cards for sale yet.</p>
+  }
 </main>
+
+@if (adding()) {
+  <app-add-card (closed)="adding.set(false)" />
+}
