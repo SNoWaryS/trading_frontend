@@ -16,11 +16,8 @@
       @if (errorMessage()) {
         <p class="error" role="alert">{{ errorMessage() }}</p>
       }
-      @if (justRegistered() && !errorMessage() && !loggedInAs()) {
+      @if (justRegistered() && !errorMessage()) {
         <p class="success" role="status">Account created. Please log in.</p>
-      }
-      @if (loggedInAs()) {
-        <p class="success" role="status">Logged in as {{ loggedInAs() }}</p>
       }
     </div>
 

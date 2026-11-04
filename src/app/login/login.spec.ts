@@ -47,7 +47,9 @@ describe('Login', () => {
     expect(element().querySelector('[role=alert]')?.textContent).toContain('Please enter');
   });
 
-  it('sends the credentials and shows the logged-in user', async () => {
+  it('sends the credentials and goes to the home page', async () => {
+    const navigate = vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
+
     await submit('alice', 'secret');
 
     const request = http.expectOne('http://localhost:5041/api/auth/login');
@@ -55,9 +57,8 @@ describe('Login', () => {
     expect(request.request.body).toEqual({ username: 'alice', password: 'secret' });
 
     request.flush({ userId: 1, username: 'alice', name: 'A', surname: 'B' });
-    await fixture.whenStable();
 
-    expect(element().querySelector('[role=status]')?.textContent).toContain('Logged in as alice');
+    expect(navigate).toHaveBeenCalledWith(['/home']);
   });
 
   it('shows an error and clears the password when the login is rejected', async () => {

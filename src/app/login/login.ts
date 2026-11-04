@@ -30,7 +30,6 @@ export class Login {
   });
   protected readonly submitting = signal(false);
   protected readonly errorMessage = signal('');
-  protected readonly loggedInAs = signal('');
   protected readonly justRegistered = signal(
     this.router.currentNavigation()?.extras.state?.['registered'] === true
   );
@@ -46,7 +45,6 @@ export class Login {
     }
 
     this.errorMessage.set('');
-    this.loggedInAs.set('');
 
     if (this.form.invalid) {
       this.errorMessage.set('Please enter your username and password');
@@ -55,10 +53,8 @@ export class Login {
 
     this.submitting.set(true);
     this.http.post<LoginResponse>(`${API_URL}/api/auth/login`, this.form.getRawValue()).subscribe({
-      next: (user) => {
-        this.submitting.set(false);
-        this.form.reset();
-        this.loggedInAs.set(user.username);
+      next: () => {
+        this.router.navigate(['/home']);
       },
       error: (error: HttpErrorResponse) => {
         this.submitting.set(false);
