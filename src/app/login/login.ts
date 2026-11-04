@@ -1,8 +1,9 @@
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Component, inject, signal } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
+import { Router } from '@angular/router';
 import { AuthShell } from '../auth-shell/auth-shell';
+import { PrivacyPolicy } from '../privacy-policy/privacy-policy';
 
 const API_URL = 'http://localhost:5041';
 
@@ -15,12 +16,13 @@ interface LoginResponse {
 
 @Component({
   selector: 'app-login',
-  imports: [ReactiveFormsModule, RouterLink, AuthShell],
+  imports: [ReactiveFormsModule, AuthShell, PrivacyPolicy],
   templateUrl: './login.html',
   styleUrl: './login.css'
 })
 export class Login {
   private readonly http = inject(HttpClient);
+  private readonly router = inject(Router);
 
   protected readonly form = new FormGroup({
     username: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
@@ -30,8 +32,13 @@ export class Login {
   protected readonly errorMessage = signal('');
   protected readonly loggedInAs = signal('');
   protected readonly justRegistered = signal(
-    inject(Router).currentNavigation()?.extras.state?.['registered'] === true
+    this.router.currentNavigation()?.extras.state?.['registered'] === true
   );
+  protected readonly policyOpen = signal(false);
+
+  protected acceptPolicy(): void {
+    this.router.navigate(['/register']);
+  }
 
   protected submit(): void {
     if (this.submitting()) {

@@ -117,13 +117,25 @@
   text-align: center;
 }
 
-.switch a {
+.switch a,
+.switch-link {
   color: var(--text);
   font-weight: 500;
+  text-decoration: underline;
   text-underline-offset: 3px;
 }
 
-.switch a:focus-visible {
+.switch-link {
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.switch a:focus-visible,
+.switch-link:focus-visible {
   outline: 2px solid var(--forest);
   outline-offset: 2px;
 }

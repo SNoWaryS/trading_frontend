@@ -29,5 +29,9 @@
     </button>
   </form>
 
-  <p class="switch">New here? <a routerLink="/register">Register</a></p>
+  <p class="switch">New here? <button class="switch-link" type="button" (click)="policyOpen.set(true)">Register</button></p>
 </app-auth-shell>
+
+@if (policyOpen()) {
+  <app-privacy-policy (accepted)="acceptPolicy()" (declined)="policyOpen.set(false)" />
+}

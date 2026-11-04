@@ -1,7 +1,7 @@
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { provideRouter } from '@angular/router';
+import { provideRouter, Router } from '@angular/router';
 import { Login } from './login';
 
 describe('Login', () => {
@@ -20,7 +20,14 @@ describe('Login', () => {
     await fixture.whenStable();
   }
 
+  async function openPolicy() {
+    element().querySelector<HTMLButtonElement>('.switch-link')!.click();
+    await fixture.whenStable();
+  }
+
   beforeEach(async () => {
+    HTMLDialogElement.prototype.showModal = vi.fn();
+
     await TestBed.configureTestingModule({
       imports: [Login],
       providers: [provideRouter([]), provideHttpClient(), provideHttpClientTesting()],
@@ -63,5 +70,35 @@ describe('Login', () => {
 
     expect(element().querySelector('[role=alert]')?.textContent).toContain('Incorrect username or password');
     expect(element().querySelectorAll('input')[1].value).toBe('');
+  });
+
+  it('shows the privacy policy instead of going straight to register', async () => {
+    const navigate = vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
+
+    await openPolicy();
+
+    expect(element().querySelector('dialog')?.textContent).toContain('นโยบายข้อมูลส่วนบุคคล');
+    expect(HTMLDialogElement.prototype.showModal).toHaveBeenCalled();
+    expect(navigate).not.toHaveBeenCalled();
+  });
+
+  it('goes to register after the policy is accepted', async () => {
+    const navigate = vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
+
+    await openPolicy();
+    element().querySelector<HTMLButtonElement>('.primary')!.click();
+
+    expect(navigate).toHaveBeenCalledWith(['/register']);
+  });
+
+  it('stays on the login page when the policy is declined', async () => {
+    const navigate = vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
+
+    await openPolicy();
+    element().querySelector<HTMLButtonElement>('.secondary')!.click();
+    await fixture.whenStable();
+
+    expect(element().querySelector('dialog')).toBeNull();
+    expect(navigate).not.toHaveBeenCalled();
   });
 });
