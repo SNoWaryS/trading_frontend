@@ -57,11 +57,12 @@ describe('ReviewForm', () => {
     await fixture.whenStable();
   }
 
+  // Reviews for the order under test, leaving out the sample reviews on other orders.
   function savedReviews() {
     let reviews: Review[] = [];
     TestBed.inject(ReviewService)
       .getReviews()
-      .subscribe((value) => (reviews = value));
+      .subscribe((value) => (reviews = value.filter((review) => review.orderId === receivedOrder.orderId)));
     return reviews;
   }
 
@@ -86,7 +87,7 @@ describe('ReviewForm', () => {
     await submit();
 
     expect(savedReviews()).toEqual([
-      { reviewId: 1, orderId: 1, buyerName: 'seller1', reviewStatus: 'reviewed', comment: 'Fast delivery, card as described.' },
+      { reviewId: 3, orderId: 1, buyerName: 'seller1', reviewStatus: 'reviewed', comment: 'Fast delivery, card as described.' },
     ]);
     expect(closed).toHaveBeenCalled();
   });

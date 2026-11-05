@@ -8,3 +8,6 @@ export interface UserProfile {
   phoneNumber: string | null;
   address: string | null;
 }
+
+// The details a user may change themselves. The username stays fixed because other records point to it.
+export type ProfileChanges = Pick<UserProfile, 'name' | 'surname' | 'email' | 'phoneNumber' | 'address'>;

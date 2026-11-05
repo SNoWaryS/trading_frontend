@@ -1,0 +1,44 @@
+<dialog #dialog class="dialog" aria-labelledby="edit-profile-title" (close)="closed.emit()" (keydown.escape)="close()">
+  <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+    <header class="header">
+      <h2 class="title" id="edit-profile-title">Edit profile</h2>
+      <p class="subtitle">Username <strong>{{ user().username }}</strong> cannot be changed.</p>
+    </header>
+
+    <div class="body">
+      <div class="row">
+        <div class="group">
+          <label class="label" for="profile-name">Name</label>
+          <input class="field" id="profile-name" type="text" formControlName="name" maxlength="100" autocomplete="given-name" />
+        </div>
+        <div class="group">
+          <label class="label" for="profile-surname">Surname</label>
+          <input class="field" id="profile-surname" type="text" formControlName="surname" maxlength="100" autocomplete="family-name" />
+        </div>
+      </div>
+      <div class="group">
+        <label class="label" for="profile-email">Email</label>
+        <input class="field" id="profile-email" type="email" formControlName="email" maxlength="255" autocomplete="email" />
+      </div>
+      <div class="group">
+        <label class="label" for="profile-phone">Phone number (optional)</label>
+        <input class="field" id="profile-phone" type="tel" formControlName="phoneNumber" maxlength="20" autocomplete="tel" />
+      </div>
+      <div class="group">
+        <label class="label" for="profile-address">Address (optional)</label>
+        <textarea class="field address" id="profile-address" rows="2" formControlName="address" maxlength="500" autocomplete="street-address"></textarea>
+      </div>
+
+      <div class="message">
+        @if (errorMessage()) {
+          <p class="error" role="alert">{{ errorMessage() }}</p>
+        }
+      </div>
+    </div>
+
+    <footer class="footer">
+      <button class="button secondary" type="button" (click)="close()">Cancel</button>
+      <button class="button primary" type="submit">Save changes</button>
+    </footer>
+  </form>
+</dialog>

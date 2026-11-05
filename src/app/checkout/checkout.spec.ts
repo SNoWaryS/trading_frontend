@@ -78,7 +78,7 @@ describe('Checkout', () => {
     await confirm();
 
     expect(placedOrders().at(-1)).toEqual({
-      orderId: 4,
+      orderId: 6,
       cardId: 2,
       buyerName: 'seller1',
       orderStatus: 'pending',

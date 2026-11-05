@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
-import { Observable, of } from 'rxjs';
-import { UserProfile } from './user-profile';
+import { BehaviorSubject, Observable, of } from 'rxjs';
+import { ProfileChanges, UserProfile } from './user-profile';
 
 // The sample user that the sell, order and review sample data belong to.
 const SAMPLE_CURRENT_USER: UserProfile = {
@@ -15,8 +15,21 @@ const SAMPLE_CURRENT_USER: UserProfile = {
 
 @Injectable({ providedIn: 'root' })
 export class UserService {
-  // Sample user for now. Load the logged-in user from the API once the app has sessions.
+  // Sample user held in memory for now. Replace these methods with HttpClient calls once the app has sessions.
+  private readonly user = new BehaviorSubject<UserProfile>(SAMPLE_CURRENT_USER);
+
   getCurrentUser(): Observable<UserProfile> {
-    return of(SAMPLE_CURRENT_USER);
+    return this.user.asObservable();
+  }
+
+  updateProfile(changes: ProfileChanges): Observable<UserProfile> {
+    const updated = { ...this.user.value, ...changes };
+    this.user.next(updated);
+    return of(updated);
+  }
+
+  // The API should block sign-in now and remove the account and its activity 30 days after its last order ends.
+  deleteAccount(): Observable<void> {
+    return of(undefined);
   }
 }

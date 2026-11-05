@@ -136,3 +136,161 @@
   color: var(--text-muted);
   font-size: 13px;
 }
+
+.identity {
+  flex: 1;
+  min-width: 0;
+}
+
+.actions {
+  display: flex;
+  gap: 12px;
+}
+
+.button {
+  height: 44px;
+  padding: 0 22px;
+  border-radius: 4px;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background-color 200ms ease;
+}
+
+.button:focus-visible {
+  outline: 2px solid var(--forest);
+  outline-offset: 2px;
+}
+
+.primary {
+  border: 1px solid var(--forest);
+  background: var(--forest);
+  color: var(--ivory);
+}
+
+.primary:hover {
+  background: var(--forest-hover);
+}
+
+.secondary {
+  border: 1px solid var(--line);
+  background: transparent;
+  color: var(--text);
+}
+
+.secondary:hover {
+  background: var(--green-100);
+}
+
+.danger {
+  border: 1px solid var(--error);
+  background: transparent;
+  color: var(--error);
+}
+
+.danger:hover {
+  background: var(--error);
+  color: #ffffff;
+}
+
+.reviews {
+  margin-top: 56px;
+}
+
+.reviews-title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 34px;
+  font-weight: 500;
+  line-height: 1.15;
+}
+
+.reviews-subtitle {
+  margin: 6px 0 0;
+  color: var(--text-muted);
+  font-size: 14px;
+}
+
+.review-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin: 24px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.review {
+  display: grid;
+  grid-template-columns: 64px 1fr;
+  gap: 24px;
+  align-items: start;
+  padding: 24px;
+  border: 1px solid var(--green-200);
+  border-radius: 8px;
+  background: #ffffff;
+}
+
+/* The source image has a stray icon on its left edge, so the sides are cropped. */
+.review-picture img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 423 / 653;
+  border-radius: 4px;
+  object-fit: cover;
+}
+
+.review-meta {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+.review-meta strong {
+  color: var(--text);
+  font-weight: 500;
+}
+
+.review-text {
+  margin: 10px 0 0;
+  font-family: var(--font-display);
+  font-size: 22px;
+  line-height: 1.4;
+}
+
+.empty {
+  margin: 24px 0 0;
+  padding: 32px;
+  border: 1px dashed var(--line);
+  border-radius: 8px;
+  color: var(--text-muted);
+  font-size: 14px;
+  text-align: center;
+}
+
+.danger-zone {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  margin-top: 56px;
+  padding: 24px 32px;
+  border: 1px solid #e7cfcf;
+  border-radius: 8px;
+  background: #fdf8f7;
+}
+
+.danger-title {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.danger-text {
+  margin: 4px 0 0;
+  color: var(--text-muted);
+  font-size: 13px;
+}

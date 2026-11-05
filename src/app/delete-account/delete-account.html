@@ -1,0 +1,24 @@
+<dialog
+  #dialog
+  class="dialog"
+  role="alertdialog"
+  aria-labelledby="delete-title"
+  aria-describedby="delete-description"
+  (close)="closed.emit()"
+  (keydown.escape)="close()"
+>
+  <h2 class="title" id="delete-title">Delete your account?</h2>
+  <div id="delete-description">
+    <p class="text">Deleting your account withdraws your consent under our privacy policy.</p>
+    <ul class="points">
+      <li>You will be signed out and can no longer use this account.</li>
+      <li>Your account and its activity are removed 30 days after your last order ends.</li>
+      <li>This cannot be undone.</li>
+    </ul>
+  </div>
+
+  <div class="actions">
+    <button class="button secondary" type="button" autofocus (click)="close()">Keep my account</button>
+    <button class="button danger" type="button" (click)="confirmed.emit()">Delete account</button>
+  </div>
+</dialog>

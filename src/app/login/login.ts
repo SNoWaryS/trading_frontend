@@ -33,6 +33,9 @@ export class Login {
   protected readonly justRegistered = signal(
     this.router.currentNavigation()?.extras.state?.['registered'] === true
   );
+  protected readonly accountDeleted = signal(
+    this.router.currentNavigation()?.extras.state?.['accountDeleted'] === true
+  );
   protected readonly policyOpen = signal(false);
 
   protected acceptPolicy(): void {

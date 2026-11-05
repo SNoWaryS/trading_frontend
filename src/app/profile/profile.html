@@ -4,9 +4,13 @@
   @if (user(); as user) {
     <section class="intro">
       <div class="avatar" aria-hidden="true">{{ initials() }}</div>
-      <div>
+      <div class="identity">
         <h1 class="title">{{ user.name }} {{ user.surname }}</h1>
         <p class="subtitle">&#64;{{ user.username }}</p>
+      </div>
+      <div class="actions">
+        <button class="button primary" type="button" (click)="editing.set(true)">Edit profile</button>
+        <button class="button secondary" type="button" (click)="logOut()">Log out</button>
       </div>
     </section>
 
@@ -65,5 +69,45 @@
         </ul>
       </section>
     </div>
+
+    <section class="reviews" aria-labelledby="reviews-title">
+      <h2 class="reviews-title" id="reviews-title">Reviews from buyers</h2>
+      <p class="reviews-subtitle">{{ receivedReviews().length }} reviews on cards you sold</p>
+
+      @if (receivedReviews().length) {
+        <ul class="review-list">
+          @for (item of receivedReviews(); track item.review.reviewId) {
+            <li class="review">
+              <div class="review-picture">
+                @if (item.card.cardPicture) {
+                  <img [src]="item.card.cardPicture" alt="" />
+                }
+              </div>
+              <div>
+                <p class="review-meta"><strong>{{ item.review.buyerName }}</strong> bought {{ item.card.cardName }}</p>
+                <blockquote class="review-text">{{ item.review.comment }}</blockquote>
+              </div>
+            </li>
+          }
+        </ul>
+      } @else {
+        <p class="empty">No reviews from buyers yet.</p>
+      }
+    </section>
+
+    <section class="danger-zone" aria-labelledby="delete-heading">
+      <div>
+        <h2 class="danger-title" id="delete-heading">Delete account</h2>
+        <p class="danger-text">Withdraw your consent and remove your account from Trading.</p>
+      </div>
+      <button class="button danger" type="button" (click)="deleting.set(true)">Delete account</button>
+    </section>
+
+    @if (editing()) {
+      <app-edit-profile [user]="user" (closed)="editing.set(false)" />
+    }
+    @if (deleting()) {
+      <app-delete-account (confirmed)="deleteAccount()" (closed)="deleting.set(false)" />
+    }
   }
 </main>

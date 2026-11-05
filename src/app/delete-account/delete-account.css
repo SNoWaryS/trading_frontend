@@ -1,0 +1,84 @@
+.dialog {
+  box-sizing: border-box;
+  width: 500px;
+  max-width: none;
+  padding: 32px 36px;
+  border: 0;
+  border-radius: 8px;
+  background: var(--ivory);
+  color: var(--text);
+  box-shadow: 0 40px 80px -24px rgb(36 56 42 / 50%);
+}
+
+.dialog::backdrop {
+  background: rgb(36 56 42 / 45%);
+  backdrop-filter: blur(4px);
+}
+
+.title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 30px;
+  font-weight: 500;
+  line-height: 1.15;
+}
+
+.text {
+  margin: 12px 0 0;
+  color: var(--text-muted);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.points {
+  margin: 12px 0 0;
+  padding-left: 20px;
+  color: var(--text-muted);
+  font-size: 14px;
+  line-height: 1.8;
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 28px;
+}
+
+.button {
+  height: 44px;
+  padding: 0 22px;
+  border-radius: 4px;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background-color 200ms ease;
+}
+
+.button:focus-visible {
+  outline: 2px solid var(--forest);
+  outline-offset: 2px;
+}
+
+.secondary {
+  border: 1px solid var(--line);
+  background: transparent;
+  color: var(--text);
+}
+
+.secondary:hover {
+  background: var(--green-100);
+}
+
+.danger {
+  border: 1px solid var(--error);
+  background: var(--error);
+  color: #ffffff;
+}
+
+.danger:hover {
+  background: #742424;
+}

@@ -19,6 +19,9 @@
       @if (justRegistered() && !errorMessage()) {
         <p class="success" role="status">Account created. Please log in.</p>
       }
+      @if (accountDeleted() && !errorMessage()) {
+        <p class="success" role="status">Your account has been deleted.</p>
+      }
     </div>
 
     <button class="submit" type="submit" [disabled]="submitting()">
