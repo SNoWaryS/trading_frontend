@@ -1,16 +1,18 @@
 import { CurrencyPipe } from '@angular/common';
 import { afterNextRender, Component, ElementRef, input, output, viewChild } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { CardListing } from '../cards/card-listing';
 
 @Component({
   selector: 'app-card-detail',
-  imports: [CurrencyPipe],
+  imports: [CurrencyPipe, RouterLink],
   templateUrl: './card-detail.html',
   styleUrl: './card-detail.css'
 })
 export class CardDetail {
   readonly card = input.required<CardListing>();
   readonly own = input(false);
+  readonly showSellerLink = input(true);
   readonly closed = output<void>();
   readonly buy = output<void>();
 

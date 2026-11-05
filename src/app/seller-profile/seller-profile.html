@@ -1,0 +1,90 @@
+<app-site-header />
+
+<main class="page">
+  <a class="back" routerLink="/home">← Back to cards</a>
+
+  @if (seller(); as seller) {
+    <section class="intro">
+      <div class="avatar" aria-hidden="true">{{ initials() }}</div>
+      <div class="identity">
+        <p class="eyebrow">Seller</p>
+        <h1 class="title">{{ seller.name }} {{ seller.surname }}</h1>
+        <p class="subtitle">&#64;{{ seller.username }}</p>
+      </div>
+      <dl class="stats">
+        <div>
+          <dt>Cards for sale</dt>
+          <dd>{{ listings().length }}</dd>
+        </div>
+        <div>
+          <dt>Reviews</dt>
+          <dd>{{ reviews().length }}</dd>
+        </div>
+      </dl>
+    </section>
+
+    <section class="section" aria-labelledby="cards-title">
+      <h2 class="section-title" id="cards-title">Cards for sale</h2>
+
+      @if (listings().length) {
+        <ul class="grid">
+          @for (card of listings(); track card.cardId) {
+            <li class="listing" (click)="selectedCard.set(card)">
+              <div class="picture">
+                @if (card.cardPicture) {
+                  <img [src]="card.cardPicture" [alt]="card.cardName" loading="lazy" />
+                }
+              </div>
+              <div class="details">
+                <p class="meta">{{ cardMeta(card) }}</p>
+                <h3 class="name"><button class="name-button" type="button">{{ card.cardName }}</button></h3>
+                <p class="price">{{ card.cardPrice | currency: 'THB' : 'symbol-narrow' : '1.0-0' }}</p>
+              </div>
+            </li>
+          }
+        </ul>
+      } @else {
+        <p class="empty">This seller has no cards for sale right now.</p>
+      }
+    </section>
+
+    <section class="section" aria-labelledby="reviews-title">
+      <h2 class="section-title" id="reviews-title">Reviews from buyers</h2>
+
+      @if (reviews().length) {
+        <ul class="review-list">
+          @for (item of reviews(); track item.review.reviewId) {
+            <li class="review">
+              <div class="review-picture">
+                @if (item.card.cardPicture) {
+                  <img [src]="item.card.cardPicture" alt="" />
+                }
+              </div>
+              <div>
+                <p class="review-meta"><strong>{{ item.review.buyerName }}</strong> bought {{ item.card.cardName }}</p>
+                <blockquote class="review-text">{{ item.review.comment }}</blockquote>
+              </div>
+            </li>
+          }
+        </ul>
+      } @else {
+        <p class="empty">No reviews from buyers yet.</p>
+      }
+    </section>
+
+    @if (selectedCard(); as card) {
+      <app-card-detail
+        [card]="card"
+        [own]="isOwn(card)"
+        [showSellerLink]="false"
+        (closed)="selectedCard.set(null)"
+        (buy)="buy(card)"
+      />
+    }
+  } @else {
+    <section class="missing">
+      <h1 class="title">Seller not found</h1>
+      <p class="subtitle">This seller does not exist or has deleted their account.</p>
+    </section>
+  }
+</main>

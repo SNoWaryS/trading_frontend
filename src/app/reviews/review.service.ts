@@ -1,9 +1,17 @@
-import { Injectable } from '@angular/core';
-import { BehaviorSubject, Observable, of, throwError } from 'rxjs';
+import { inject, Injectable } from '@angular/core';
+import { BehaviorSubject, combineLatest, map, Observable, of, throwError } from 'rxjs';
+import { CardListing } from '../cards/card-listing';
+import { CardService } from '../cards/card.service';
 import { Order } from '../orders/order';
+import { OrderService } from '../orders/order.service';
 import { isReviewed, Review } from './review';
 
-// Reviews that other buyers wrote for the sample user's cards (orders 4 and 5).
+export interface SellerReview {
+  review: Review;
+  card: CardListing;
+}
+
+// Reviews that buyers wrote for sample sellers: orders 4 and 5 for seller1, order 6 for seller2.
 const SAMPLE_REVIEWS: Review[] = [
   {
     reviewId: 1,
@@ -19,15 +27,41 @@ const SAMPLE_REVIEWS: Review[] = [
     reviewStatus: 'reviewed',
     comment: 'Fast reply and quick delivery. Would buy again.',
   },
+  {
+    reviewId: 3,
+    orderId: 6,
+    buyerName: 'buyer3',
+    reviewStatus: 'reviewed',
+    comment: 'Honest seller, the card looked even better in person.',
+  },
 ];
 
 @Injectable({ providedIn: 'root' })
 export class ReviewService {
+  private readonly orders = inject(OrderService);
+  private readonly cards = inject(CardService);
+
   // Reviews held in memory for now. Replace these methods with HttpClient calls once the API exists.
   private readonly reviews = new BehaviorSubject<Review[]>(SAMPLE_REVIEWS);
 
   getReviews(): Observable<Review[]> {
     return this.reviews.asObservable();
+  }
+
+  // Reviews buyers wrote on orders for this seller's cards, newest first.
+  getReviewsForSeller(sellerName: string): Observable<SellerReview[]> {
+    return combineLatest([this.reviews, this.orders.getOrders(), this.cards.getListings()]).pipe(
+      map(([reviews, orders, listings]) =>
+        reviews
+          .filter(isReviewed)
+          .flatMap((review) => {
+            const order = orders.find((item) => item.orderId === review.orderId);
+            const card = order && listings.find((listing) => listing.cardId === order.cardId);
+            return card && card.sellerName === sellerName ? [{ review, card }] : [];
+          })
+          .reverse()
+      )
+    );
   }
 
   // Only a received order can be reviewed, and only while its review status is not 'reviewed'.

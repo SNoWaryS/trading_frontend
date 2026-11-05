@@ -10,8 +10,11 @@ const SAMPLE_ORDERS: Order[] = [
   { orderId: 2, cardId: 4, buyerName: SAMPLE_CURRENT_USER, orderStatus: 'shipped', orderPrice: 8900, paymentSlip: null },
   { orderId: 3, cardId: 5, buyerName: SAMPLE_CURRENT_USER, orderStatus: 'pending', orderPrice: 1590, paymentSlip: null },
   // Other buyers' orders for the sample user's cards, so the profile has reviews from buyers.
+  // Note: these sample cards still show as for sale, because CARDS has no sold status yet.
   { orderId: 4, cardId: 3, buyerName: 'buyer2', orderStatus: 'received', orderPrice: 320, paymentSlip: null },
   { orderId: 5, cardId: 6, buyerName: 'buyer3', orderStatus: 'received', orderPrice: 680, paymentSlip: null },
+  // Another buyer's order from seller2, so other sellers' profiles have a review too.
+  { orderId: 6, cardId: 2, buyerName: 'buyer3', orderStatus: 'received', orderPrice: 2800, paymentSlip: null },
 ];
 
 @Injectable({ providedIn: 'root' })

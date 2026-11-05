@@ -1,0 +1,247 @@
+.page {
+  box-sizing: border-box;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 32px 40px 80px;
+}
+
+.back {
+  display: inline-block;
+  margin-bottom: 24px;
+  color: var(--text-muted);
+  font-size: 13px;
+  text-decoration: none;
+}
+
+.back:hover {
+  color: var(--text);
+}
+
+.intro {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+  padding-bottom: 32px;
+  border-bottom: 1px solid var(--line);
+}
+
+.avatar {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 96px;
+  height: 96px;
+  border: 1px solid var(--green-400);
+  border-radius: 50%;
+  background: linear-gradient(160deg, var(--green-100), var(--green-300));
+  font-family: var(--font-display);
+  font-size: 36px;
+  font-weight: 500;
+}
+
+.identity {
+  flex: 1;
+  min-width: 0;
+}
+
+.eyebrow {
+  margin: 0 0 4px;
+  color: var(--text-muted);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 46px;
+  font-weight: 500;
+  line-height: 1.1;
+}
+
+.subtitle {
+  margin: 6px 0 0;
+  color: var(--text-muted);
+  font-size: 14px;
+}
+
+.stats {
+  display: flex;
+  gap: 40px;
+  margin: 0;
+}
+
+.stats dt {
+  color: var(--text-muted);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+/* Body font, because the display font's 1 looks like a capital I. */
+.stats dd {
+  margin: 6px 0 0;
+  font-size: 28px;
+  font-weight: 500;
+  line-height: 1;
+}
+
+.section {
+  margin-top: 48px;
+}
+
+.section-title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 30px;
+  font-weight: 500;
+  line-height: 1.15;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 28px;
+  margin: 24px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.listing {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid var(--green-200);
+  border-radius: 8px;
+  background: #ffffff;
+  cursor: pointer;
+  transition: box-shadow 250ms ease, transform 250ms ease;
+}
+
+.listing:hover {
+  box-shadow: 0 24px 40px -24px rgb(36 56 42 / 35%);
+  transform: translateY(-3px);
+}
+
+.picture {
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: linear-gradient(160deg, var(--green-100), var(--green-200));
+}
+
+/* The source image has a stray icon on its left edge, so the sides are cropped. */
+.picture img,
+.review-picture img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 423 / 653;
+  object-fit: cover;
+}
+
+.picture img {
+  border-radius: 8px;
+  box-shadow: 0 16px 24px -14px rgb(36 56 42 / 45%);
+}
+
+.details {
+  padding: 16px 18px 18px;
+}
+
+.meta {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.name {
+  margin: 8px 0 0;
+  font-family: var(--font-display);
+  font-size: 24px;
+  font-weight: 500;
+  line-height: 1.2;
+}
+
+.name-button {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.name-button:focus-visible,
+.back:focus-visible {
+  outline: 2px solid var(--forest);
+  outline-offset: 2px;
+}
+
+.price {
+  margin: 12px 0 0;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.review-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin: 24px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.review {
+  display: grid;
+  grid-template-columns: 64px 1fr;
+  gap: 24px;
+  align-items: start;
+  padding: 24px;
+  border: 1px solid var(--green-200);
+  border-radius: 8px;
+  background: #ffffff;
+}
+
+.review-picture img {
+  border-radius: 4px;
+}
+
+.review-meta {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+.review-meta strong {
+  color: var(--text);
+  font-weight: 500;
+}
+
+.review-text {
+  margin: 10px 0 0;
+  font-family: var(--font-display);
+  font-size: 22px;
+  line-height: 1.4;
+}
+
+.empty {
+  margin: 24px 0 0;
+  padding: 32px;
+  border: 1px dashed var(--line);
+  border-radius: 8px;
+  color: var(--text-muted);
+  font-size: 14px;
+  text-align: center;
+}
+
+.missing {
+  margin-top: 24px;
+}

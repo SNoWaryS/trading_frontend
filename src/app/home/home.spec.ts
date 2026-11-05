@@ -107,6 +107,24 @@ describe('Home', () => {
     expect(navigate).toHaveBeenCalledWith(['/checkout', 2]);
   });
 
+  it('links from the card details to the seller’s profile', async () => {
+    element().querySelectorAll<HTMLElement>('.listing')[1].click();
+    await fixture.whenStable();
+
+    const link = dialog()!.querySelector('.seller-link')!;
+    expect(link.textContent).toContain('View seller profile');
+    expect(link.getAttribute('href')).toBe('/sellers/seller2');
+  });
+
+  it('links to the user’s own profile from their own card', async () => {
+    element().querySelector<HTMLElement>('.listing')!.click();
+    await fixture.whenStable();
+
+    const link = dialog()!.querySelector('.seller-link')!;
+    expect(link.textContent).toContain('View your profile');
+    expect(link.getAttribute('href')).toBe('/profile');
+  });
+
   it('shows the user their own listings instead of a Buy button', async () => {
     const first = element().querySelector('.listing')!;
     expect(first.querySelector('.buy')).toBeNull();

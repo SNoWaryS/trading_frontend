@@ -55,10 +55,11 @@ describe('Checkout', () => {
 
   it('requires a payment slip', async () => {
     await open(2);
+    const before = placedOrders().length;
     await confirm();
 
     expect(alert()).toContain('attach your payment slip');
-    expect(placedOrders().some((order) => order.cardId === 2)).toBe(false);
+    expect(placedOrders().length).toBe(before);
   });
 
   it('rejects a slip that is not a picture', async () => {
@@ -78,7 +79,7 @@ describe('Checkout', () => {
     await confirm();
 
     expect(placedOrders().at(-1)).toEqual({
-      orderId: 6,
+      orderId: 7,
       cardId: 2,
       buyerName: 'seller1',
       orderStatus: 'pending',

@@ -18,7 +18,14 @@
 
       <p class="meta">{{ card().cardType }}</p>
       <h2 class="name" id="card-detail-name">{{ card().cardName }}</h2>
-      <p class="seller">Sold by <strong>{{ card().sellerName }}</strong></p>
+      <div class="seller-row">
+        <p class="seller">Sold by <strong>{{ card().sellerName }}</strong></p>
+        @if (showSellerLink()) {
+          <a class="seller-link" [routerLink]="own() ? ['/profile'] : ['/sellers', card().sellerName]">
+            {{ own() ? 'View your profile' : 'View seller profile' }}
+          </a>
+        }
+      </div>
 
       <div class="prices">
         <p class="price">{{ card().cardPrice | currency: 'THB' : 'symbol-narrow' : '1.0-0' }}</p>

@@ -125,9 +125,9 @@
   outline-offset: 2px;
 }
 
+/* Body font, because the display font's 1 looks like a capital I. */
 .stat-value {
-  font-family: var(--font-display);
-  font-size: 34px;
+  font-size: 28px;
   font-weight: 500;
   line-height: 1;
 }

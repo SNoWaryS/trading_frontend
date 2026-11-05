@@ -87,7 +87,7 @@ describe('ReviewForm', () => {
     await submit();
 
     expect(savedReviews()).toEqual([
-      { reviewId: 3, orderId: 1, buyerName: 'seller1', reviewStatus: 'reviewed', comment: 'Fast delivery, card as described.' },
+      { reviewId: 4, orderId: 1, buyerName: 'seller1', reviewStatus: 'reviewed', comment: 'Fast delivery, card as described.' },
     ]);
     expect(closed).toHaveBeenCalled();
   });

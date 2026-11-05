@@ -222,7 +222,9 @@ describe('Profile', () => {
     });
 
     it('says so when nobody has reviewed the user yet', async () => {
-      await render([{ provide: ReviewService, useValue: { getReviews: () => of([]) } }]);
+      await render([
+        { provide: ReviewService, useValue: { getReviews: () => of([]), getReviewsForSeller: () => of([]) } },
+      ]);
 
       expect(reviews()).toEqual([]);
       expect(element().querySelector('.reviews .empty')?.textContent).toContain('No reviews from buyers yet');

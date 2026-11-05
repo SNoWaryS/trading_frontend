@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, Observable, of } from 'rxjs';
-import { ProfileChanges, UserProfile } from './user-profile';
+import { BehaviorSubject, map, Observable, of } from 'rxjs';
+import { ProfileChanges, PublicProfile, UserProfile } from './user-profile';
 
 // The sample user that the sell, order and review sample data belong to.
 const SAMPLE_CURRENT_USER: UserProfile = {
@@ -13,13 +13,32 @@ const SAMPLE_CURRENT_USER: UserProfile = {
   address: '123 Sample Road, Bangkok 10100',
 };
 
+// The other sample sellers in the card listings (seller2 to seller8).
+const SAMPLE_SELLERS: PublicProfile[] = [2, 3, 4, 5, 6, 7, 8].map((id) => ({
+  userId: id,
+  name: 'Sample',
+  surname: `Seller ${id}`,
+  username: `seller${id}`,
+}));
+
 @Injectable({ providedIn: 'root' })
 export class UserService {
-  // Sample user held in memory for now. Replace these methods with HttpClient calls once the app has sessions.
+  // Sample users held in memory for now. Replace these methods with HttpClient calls once the app has sessions.
   private readonly user = new BehaviorSubject<UserProfile>(SAMPLE_CURRENT_USER);
 
   getCurrentUser(): Observable<UserProfile> {
     return this.user.asObservable();
+  }
+
+  // Public details only, so a seller's email, phone number and address are never shown to buyers.
+  getPublicProfile(username: string): Observable<PublicProfile | undefined> {
+    return this.user.pipe(
+      map((current) =>
+        [current, ...SAMPLE_SELLERS]
+          .map(({ userId, name, surname, username }) => ({ userId, name, surname, username }))
+          .find((profile) => profile.username === username)
+      )
+    );
   }
 
   updateProfile(changes: ProfileChanges): Observable<UserProfile> {
