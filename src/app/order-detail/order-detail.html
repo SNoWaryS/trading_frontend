@@ -1,0 +1,69 @@
+<dialog
+  #dialog
+  class="dialog"
+  aria-labelledby="order-detail-name"
+  (close)="closed.emit()"
+  (click)="closeOnBackdrop($event)"
+  (keydown.escape)="close()"
+>
+  <div class="layout">
+    <div class="picture">
+      @if (card().cardPicture; as picture) {
+        <img [src]="picture" [alt]="card().cardName" />
+      }
+    </div>
+
+    <div class="content">
+      <button class="close" type="button" aria-label="Close" (click)="close()">×</button>
+
+      <p class="meta">Order #{{ order().orderId }}</p>
+      <h2 class="name" id="order-detail-name">{{ card().cardName }}</h2>
+      <p class="seller">Sold by <strong>{{ card().sellerName }}</strong></p>
+
+      <dl class="facts">
+        <div>
+          <dt>Paid</dt>
+          <dd>{{ order().orderPrice | currency: 'THB' : 'symbol-narrow' : '1.0-0' }}</dd>
+        </div>
+        <div>
+          <dt>Status</dt>
+          <dd><span class="status" [class]="'status ' + order().orderStatus">{{ statusLabels[order().orderStatus] }}</span></dd>
+        </div>
+        <div>
+          <dt>Card</dt>
+          <dd>{{ cardMeta(card()) || '—' }}</dd>
+        </div>
+      </dl>
+
+      <h3 class="heading">Description</h3>
+      <p class="description">{{ card().cardDescription ?? 'No description provided.' }}</p>
+
+      <div class="receipt">
+        @switch (order().orderStatus) {
+          @case ('pending') {
+            <p class="note">You can confirm receipt once the seller has checked your payment and sent the card.</p>
+            <button class="primary" type="button" disabled>Confirm receipt</button>
+          }
+          @case ('shipped') {
+            @if (asking()) {
+              <p class="note">Did you receive this card in the condition described?</p>
+              <div class="choices">
+                <button class="secondary" type="button" (click)="asking.set(false)">Not yet</button>
+                <button class="primary" type="button" (click)="confirmReceipt()">Yes, I received it</button>
+              </div>
+            } @else {
+              <p class="note">The seller has sent this card. Confirm once it arrives so you can review the order.</p>
+              <button class="primary" type="button" (click)="asking.set(true)">Confirm receipt</button>
+            }
+          }
+          @case ('received') {
+            <p class="done" role="status">You confirmed that you received this card. You can now review the order.</p>
+          }
+        }
+        @if (errorMessage()) {
+          <p class="error" role="alert">{{ errorMessage() }}</p>
+        }
+      </div>
+    </div>
+  </div>
+</dialog>

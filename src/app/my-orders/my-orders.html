@@ -1,0 +1,51 @@
+<app-site-header />
+
+<main class="page">
+  <section class="intro">
+    <h1 class="title">My orders</h1>
+    <p class="subtitle">{{ rows().length }} orders</p>
+  </section>
+
+  @if (rows().length) {
+    <ul class="list">
+      @for (row of rows(); track row.order.orderId) {
+        <li class="row" (click)="open(row)">
+          <div class="picture">
+            @if (row.card.cardPicture) {
+              <img [src]="row.card.cardPicture" [alt]="row.card.cardName" loading="lazy" />
+            }
+          </div>
+
+          <div class="card">
+            <p class="meta">Order #{{ row.order.orderId }} · {{ cardMeta(row.card) }}</p>
+            <h2 class="name"><button class="name-button" type="button">{{ row.card.cardName }}</button></h2>
+            <p class="seller">Sold by {{ row.card.sellerName }}</p>
+          </div>
+
+          <p class="price">{{ row.order.orderPrice | currency: 'THB' : 'symbol-narrow' : '1.0-0' }}</p>
+
+          <span [class]="'status ' + row.order.orderStatus">{{ statusLabels[row.order.orderStatus] }}</span>
+
+          <button
+            class="review"
+            type="button"
+            [disabled]="row.order.orderStatus !== 'received'"
+            [attr.title]="row.order.orderStatus === 'received' ? null : 'Confirm receipt first to review this order'"
+            (click)="$event.stopPropagation()"
+          >
+            Review
+          </button>
+        </li>
+      }
+    </ul>
+  } @else {
+    <section class="empty">
+      <p>You have not ordered any cards yet.</p>
+      <a class="browse" routerLink="/home">Browse cards</a>
+    </section>
+  }
+</main>
+
+@if (selected(); as row) {
+  <app-order-detail [order]="row.order" [card]="row.card" (closed)="closeDetail()" />
+}

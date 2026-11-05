@@ -58,7 +58,7 @@ describe('Checkout', () => {
     await confirm();
 
     expect(alert()).toContain('attach your payment slip');
-    expect(placedOrders()).toEqual([]);
+    expect(placedOrders().some((order) => order.cardId === 2)).toBe(false);
   });
 
   it('rejects a slip that is not a picture', async () => {
@@ -77,9 +77,14 @@ describe('Checkout', () => {
 
     await confirm();
 
-    expect(placedOrders()).toEqual([
-      { orderId: 1, cardId: 2, buyerName: 'seller1', orderStatus: 'pending', orderPrice: 2800, paymentSlip: 'blob:slip' },
-    ]);
+    expect(placedOrders().at(-1)).toEqual({
+      orderId: 4,
+      cardId: 2,
+      buyerName: 'seller1',
+      orderStatus: 'pending',
+      orderPrice: 2800,
+      paymentSlip: 'blob:slip',
+    });
     expect(element().textContent).toContain('Order placed');
     expect(element().textContent).toContain('Waiting for payment check');
     expect(element().querySelector('.confirm')).toBeNull();
