@@ -1,7 +1,7 @@
 import { CurrencyPipe } from '@angular/common';
 import { Component, computed, inject, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { CardDetail } from '../card-detail/card-detail';
 import { CardListing, cardMeta } from '../cards/card-listing';
 import { CardService } from '../cards/card.service';
@@ -14,7 +14,9 @@ import { SiteHeader } from '../site-header/site-header';
   styleUrl: './home.css'
 })
 export class Home {
-  private readonly listings = toSignal(inject(CardService).getListings(), { initialValue: [] });
+  private readonly cards = inject(CardService);
+  private readonly router = inject(Router);
+  private readonly listings = toSignal(this.cards.getListings(), { initialValue: [] });
 
   protected readonly search = signal('');
   protected readonly selectedElement = signal<string | null>(null);
@@ -34,4 +36,12 @@ export class Home {
         (!element || card.cardElement === element)
     );
   });
+
+  protected isOwn(card: CardListing): boolean {
+    return this.cards.isOwnListing(card);
+  }
+
+  protected buy(card: CardListing): void {
+    this.router.navigate(['/checkout', card.cardId]);
+  }
 }

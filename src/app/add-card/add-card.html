@@ -6,7 +6,7 @@
           #pictureInput
           class="upload-input"
           type="file"
-          accept="image/jpeg,image/png,image/webp"
+          [accept]="pictureAccept"
           (change)="choosePicture(pictureInput)"
         />
         @if (picture(); as source) {

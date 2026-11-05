@@ -56,6 +56,10 @@ export class CardService {
     );
   }
 
+  isOwnListing(card: CardListing): boolean {
+    return card.sellerName === SAMPLE_CURRENT_USER;
+  }
+
   addListing(card: NewCardListing): Observable<CardListing> {
     const current = this.listings.value;
     const listing: CardListing = {

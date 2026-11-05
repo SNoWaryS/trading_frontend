@@ -1,5 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { provideRouter } from '@angular/router';
+import { provideRouter, Router } from '@angular/router';
 import { Home } from './home';
 
 describe('Home', () => {
@@ -87,10 +87,35 @@ describe('Home', () => {
     expect(dialog()).toBeNull();
   });
 
-  it('does not open the details when Buy is clicked', async () => {
+  it('goes to the order page when Buy is clicked, without opening the details', async () => {
+    const navigate = vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
+
     element().querySelector<HTMLButtonElement>('.buy')!.click();
     await fixture.whenStable();
 
     expect(dialog()).toBeNull();
+    expect(navigate).toHaveBeenCalledWith(['/checkout', 2]);
+  });
+
+  it('goes to the order page from Buy in the details', async () => {
+    const navigate = vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
+
+    element().querySelectorAll<HTMLElement>('.listing')[1].click();
+    await fixture.whenStable();
+    dialog()!.querySelector<HTMLButtonElement>('.buy')!.click();
+
+    expect(navigate).toHaveBeenCalledWith(['/checkout', 2]);
+  });
+
+  it('shows the user their own listings instead of a Buy button', async () => {
+    const first = element().querySelector('.listing')!;
+    expect(first.querySelector('.buy')).toBeNull();
+    expect(first.querySelector('.own')?.textContent).toContain('Your listing');
+
+    (first as HTMLElement).click();
+    await fixture.whenStable();
+
+    expect(dialog()!.querySelector('.buy')).toBeNull();
+    expect(dialog()!.textContent).toContain('This is your listing');
   });
 });

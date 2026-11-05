@@ -50,7 +50,11 @@
                   <p class="reference">Ref. {{ card.referencePrice | currency: 'THB' : 'symbol-narrow' : '1.0-0' }}</p>
                 }
               </div>
-              <button class="buy" type="button" (click)="$event.stopPropagation()">Buy</button>
+              @if (isOwn(card)) {
+                <span class="own">Your listing</span>
+              } @else {
+                <button class="buy" type="button" (click)="$event.stopPropagation(); buy(card)">Buy</button>
+              }
             </div>
           </div>
         </li>
@@ -62,5 +66,5 @@
 </main>
 
 @if (selectedCard(); as card) {
-  <app-card-detail [card]="card" (closed)="selectedCard.set(null)" />
+  <app-card-detail [card]="card" [own]="isOwn(card)" (closed)="selectedCard.set(null)" (buy)="buy(card)" />
 }

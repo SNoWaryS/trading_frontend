@@ -10,7 +10,9 @@ import { CardListing } from '../cards/card-listing';
 })
 export class CardDetail {
   readonly card = input.required<CardListing>();
+  readonly own = input(false);
   readonly closed = output<void>();
+  readonly buy = output<void>();
 
   private readonly dialog = viewChild.required<ElementRef<HTMLDialogElement>>('dialog');
 

@@ -1,9 +1,8 @@
 import { afterNextRender, Component, ElementRef, inject, output, signal, viewChild } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { CardService } from '../cards/card.service';
+import { PICTURE_ACCEPT, pictureFileError } from '../shared/picture-file';
 
-const MAX_PICTURE_BYTES = 5 * 1024 * 1024;
-const PICTURE_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
 const MAX_PRICE = 9_999_999_999; // Largest whole-baht value that fits DECIMAL(12,2).
 const WHOLE_NUMBER = /^\d+$/;
 
@@ -19,7 +18,8 @@ export class AddCard {
   private readonly cards = inject(CardService);
   private readonly dialog = viewChild.required<ElementRef<HTMLDialogElement>>('dialog');
 
-  protected readonly cardTypes = ['Pokémon', 'Trainer', 'Energy'];
+  protected readonly pictureAccept = PICTURE_ACCEPT;
+  protected readonly cardTypes =['Pokémon', 'Trainer', 'Energy'];
   protected readonly rarities = ['C', 'U', 'R', 'RR', 'AR', 'SR', 'SAR', 'UR'];
   protected readonly elements = ['Grass', 'Fire', 'Water', 'Lightning', 'Psychic', 'Fighting', 'Darkness', 'Metal', 'Dragon', 'Colorless'];
   protected readonly stages = ['Basic', 'Stage 1', 'Stage 2'];
@@ -58,14 +58,10 @@ export class AddCard {
       return;
     }
 
-    if (!PICTURE_TYPES.includes(file.type)) {
+    const error = pictureFileError(file);
+    if (error) {
       input.value = '';
-      this.errorMessage.set('Please choose a JPG, PNG or WebP picture');
-      return;
-    }
-    if (file.size > MAX_PICTURE_BYTES) {
-      input.value = '';
-      this.errorMessage.set('The picture must be 5 MB or smaller');
+      this.errorMessage.set(error);
       return;
     }
 

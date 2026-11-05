@@ -235,6 +235,12 @@
   transition: background-color 200ms ease, color 200ms ease;
 }
 
+.own {
+  color: var(--text-muted);
+  font-size: 12px;
+  font-style: italic;
+}
+
 .buy:hover {
   background: var(--forest);
   color: var(--ivory);

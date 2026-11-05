@@ -172,6 +172,16 @@ dd {
   background: var(--forest-hover);
 }
 
+.own {
+  margin: auto 0 0;
+  padding: 14px 0;
+  border-radius: 4px;
+  background: var(--green-100);
+  color: var(--text-muted);
+  font-size: 13px;
+  text-align: center;
+}
+
 .close:focus-visible,
 .buy:focus-visible {
   outline: 2px solid var(--forest);

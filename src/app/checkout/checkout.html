@@ -1,0 +1,107 @@
+<app-site-header />
+
+<main class="page">
+  <a class="back" routerLink="/home">← Back to cards</a>
+
+  @if (card(); as card) {
+    @if (order(); as order) {
+      <section class="done" role="status">
+        <p class="eyebrow">Order #{{ order.orderId }}</p>
+        <h1 class="title">Order placed</h1>
+        <p class="lead">
+          Your payment slip has been sent to {{ card.sellerName }}. The order is waiting for the seller to check
+          your payment.
+        </p>
+
+        <dl class="done-facts">
+          <div>
+            <dt>Card</dt>
+            <dd>{{ card.cardName }}</dd>
+          </div>
+          <div>
+            <dt>Total</dt>
+            <dd>{{ order.orderPrice | currency: 'THB' : 'symbol-narrow' : '1.0-0' }}</dd>
+          </div>
+          <div>
+            <dt>Status</dt>
+            <dd><span class="status">Waiting for payment check</span></dd>
+          </div>
+        </dl>
+
+        <a class="primary link-button" routerLink="/home">Back to cards</a>
+      </section>
+    } @else {
+      <h1 class="title">Confirm your order</h1>
+
+      <div class="layout">
+        <section class="summary" aria-labelledby="summary-title">
+          <h2 class="section-title" id="summary-title">Order summary</h2>
+
+          <div class="item">
+            <div class="picture">
+              @if (card.cardPicture) {
+                <img [src]="card.cardPicture" [alt]="card.cardName" />
+              }
+            </div>
+            <div>
+              <p class="meta">{{ cardMeta(card) }}</p>
+              <p class="name">{{ card.cardName }}</p>
+              <p class="seller">Sold by <strong>{{ card.sellerName }}</strong></p>
+            </div>
+          </div>
+
+          <dl class="totals">
+            <div>
+              <dt>Card price</dt>
+              <dd>{{ card.cardPrice | currency: 'THB' : 'symbol-narrow' : '1.0-0' }}</dd>
+            </div>
+            <div class="total">
+              <dt>Total</dt>
+              <dd>{{ card.cardPrice | currency: 'THB' : 'symbol-narrow' : '1.0-0' }}</dd>
+            </div>
+          </dl>
+        </section>
+
+        <section class="payment" aria-labelledby="payment-title">
+          <h2 class="section-title" id="payment-title">Payment</h2>
+
+          @if (isOwn()) {
+            <p class="note">This is your own listing, so you can't buy it.</p>
+          } @else {
+            <p class="note">
+              Transfer {{ card.cardPrice | currency: 'THB' : 'symbol-narrow' : '1.0-0' }} to the seller, then
+              attach your payment slip as proof of payment.
+            </p>
+
+            <label class="upload">
+              <input #slipInput class="upload-input" type="file" [accept]="pictureAccept" (change)="chooseSlip(slipInput)" />
+              @if (slip(); as source) {
+                <img class="preview" [src]="source" alt="Attached payment slip" />
+                <span class="upload-action">Change slip</span>
+              } @else {
+                <span class="placeholder">
+                  <span class="upload-action">Attach payment slip</span>
+                  <span class="upload-hint">JPG, PNG or WebP, up to 5 MB</span>
+                </span>
+              }
+            </label>
+
+            <div class="message">
+              @if (errorMessage()) {
+                <p class="error" role="alert">{{ errorMessage() }}</p>
+              }
+            </div>
+
+            <button class="primary confirm" type="button" (click)="confirm()">Confirm order</button>
+          }
+        </section>
+      </div>
+    }
+  } @else {
+    <section class="done">
+      <h1 class="title">Card not available</h1>
+      <p class="lead">This card is no longer for sale.</p>
+      <a class="primary link-button" routerLink="/home">Back to cards</a>
+    </section>
+  }
+</main>
