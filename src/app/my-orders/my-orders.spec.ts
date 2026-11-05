@@ -62,13 +62,35 @@ describe('MyOrders', () => {
     expect(review(3).disabled).toBe(true);
   });
 
-  it('does not open the details when Review is clicked', async () => {
+  it('opens the review form, not the details, when Review is clicked', async () => {
     await render();
 
     row(1).querySelector<HTMLButtonElement>('.review')!.click();
     await fixture.whenStable();
 
-    expect(dialog()).toBeNull();
+    expect(element().querySelector('app-review-form')).not.toBeNull();
+    expect(element().querySelector('app-order-detail')).toBeNull();
+  });
+
+  it('marks the order as reviewed and shows the review in the details', async () => {
+    await render();
+
+    row(1).querySelector<HTMLButtonElement>('.review')!.click();
+    await fixture.whenStable();
+    const comment = element().querySelector<HTMLTextAreaElement>('app-review-form textarea')!;
+    comment.value = 'Great seller';
+    comment.dispatchEvent(new Event('input'));
+    element().querySelector('app-review-form form')!.dispatchEvent(new Event('submit'));
+    await fixture.whenStable();
+
+    const review = row(1).querySelector<HTMLButtonElement>('.review')!;
+    expect(element().querySelector('app-review-form')).toBeNull();
+    expect(review.textContent).toContain('Reviewed');
+    expect(review.disabled).toBe(true);
+
+    await openDetail(1);
+    expect(dialog()?.textContent).toContain('Your review');
+    expect(dialog()?.textContent).toContain('Great seller');
   });
 
   it('shows the purchased card in the details', async () => {

@@ -1,0 +1,159 @@
+.dialog {
+  width: 560px;
+  max-width: none;
+  padding: 0;
+  overflow: hidden;
+  border: 0;
+  border-radius: 8px;
+  background: var(--ivory);
+  color: var(--text);
+  box-shadow: 0 40px 80px -24px rgb(36 56 42 / 50%);
+}
+
+.dialog::backdrop {
+  background: rgb(36 56 42 / 45%);
+  backdrop-filter: blur(4px);
+}
+
+.header {
+  display: grid;
+  grid-template-columns: 64px 1fr;
+  gap: 20px;
+  align-items: center;
+  padding: 28px 36px;
+  border-bottom: 1px solid var(--line);
+  background: var(--green-100);
+}
+
+/* The source image has a stray icon on its left edge, so the sides are cropped. */
+.picture img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 423 / 653;
+  border-radius: 4px;
+  box-shadow: 0 10px 20px -12px rgb(36 56 42 / 50%);
+  object-fit: cover;
+}
+
+.meta,
+.label {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.title {
+  margin: 6px 0 0;
+  font-family: var(--font-display);
+  font-size: 32px;
+  font-weight: 500;
+  line-height: 1.1;
+}
+
+.subtitle {
+  margin: 6px 0 0;
+  color: var(--text-muted);
+  font-size: 14px;
+}
+
+.subtitle strong {
+  color: var(--text);
+  font-weight: 500;
+}
+
+.body {
+  padding: 28px 36px 8px;
+}
+
+.comment {
+  box-sizing: border-box;
+  display: block;
+  width: 100%;
+  margin-top: 8px;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  outline: 0;
+  background: #ffffff;
+  color: var(--text);
+  font: inherit;
+  font-size: 14px;
+  line-height: 1.5;
+  resize: none;
+}
+
+.comment::placeholder {
+  color: var(--text-muted);
+  opacity: 1;
+}
+
+.comment:focus-visible {
+  border-color: var(--forest);
+  box-shadow: 0 0 0 1px var(--forest);
+}
+
+.hint {
+  margin: 8px 0 0;
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+.message {
+  display: flex;
+  align-items: center;
+  min-height: 32px;
+}
+
+.error {
+  margin: 0;
+  color: var(--error);
+  font-size: 13px;
+}
+
+.footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 0 36px 28px;
+}
+
+.button {
+  height: 44px;
+  padding: 0 24px;
+  border-radius: 4px;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background-color 200ms ease;
+}
+
+.button:focus-visible {
+  outline: 2px solid var(--forest);
+  outline-offset: 2px;
+}
+
+.primary {
+  border: 1px solid var(--forest);
+  background: var(--forest);
+  color: var(--ivory);
+}
+
+.primary:hover {
+  background: var(--forest-hover);
+}
+
+.secondary {
+  border: 1px solid var(--line);
+  background: transparent;
+  color: var(--text);
+}
+
+.secondary:hover {
+  background: var(--green-100);
+}

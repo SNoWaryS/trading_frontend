@@ -1,0 +1,40 @@
+<dialog #dialog class="dialog" aria-labelledby="review-title" (close)="closed.emit()" (keydown.escape)="close()">
+  <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+    <header class="header">
+      <div class="picture">
+        @if (card().cardPicture; as picture) {
+          <img [src]="picture" alt="" />
+        }
+      </div>
+      <div>
+        <p class="meta">Order #{{ order().orderId }}</p>
+        <h2 class="title" id="review-title">Review your order</h2>
+        <p class="subtitle">{{ card().cardName }} from <strong>{{ card().sellerName }}</strong></p>
+      </div>
+    </header>
+
+    <div class="body">
+      <label class="label" for="review-comment">Your review</label>
+      <textarea
+        class="comment"
+        id="review-comment"
+        rows="5"
+        maxlength="500"
+        formControlName="comment"
+        placeholder="Tell other buyers about the card and the seller"
+      ></textarea>
+      <p class="hint">You can review each order only once.</p>
+
+      <div class="message">
+        @if (errorMessage()) {
+          <p class="error" role="alert">{{ errorMessage() }}</p>
+        }
+      </div>
+    </div>
+
+    <footer class="footer">
+      <button class="button secondary" type="button" (click)="close()">Cancel</button>
+      <button class="button primary" type="submit">Submit review</button>
+    </footer>
+  </form>
+</dialog>

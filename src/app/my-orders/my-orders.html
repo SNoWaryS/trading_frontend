@@ -29,11 +29,11 @@
           <button
             class="review"
             type="button"
-            [disabled]="row.order.orderStatus !== 'received'"
+            [disabled]="row.order.orderStatus !== 'received' || isReviewed(row.review)"
             [attr.title]="row.order.orderStatus === 'received' ? null : 'Confirm receipt first to review this order'"
-            (click)="$event.stopPropagation()"
+            (click)="$event.stopPropagation(); startReview(row)"
           >
-            Review
+            {{ isReviewed(row.review) ? 'Reviewed' : 'Review' }}
           </button>
         </li>
       }
@@ -47,5 +47,9 @@
 </main>
 
 @if (selected(); as row) {
-  <app-order-detail [order]="row.order" [card]="row.card" (closed)="closeDetail()" />
+  <app-order-detail [order]="row.order" [card]="row.card" [review]="row.review" (closed)="closeDetail()" />
+}
+
+@if (reviewing(); as row) {
+  <app-review-form [order]="row.order" [card]="row.card" (closed)="reviewingOrderId.set(null)" />
 }

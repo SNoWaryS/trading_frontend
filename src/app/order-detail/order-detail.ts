@@ -3,6 +3,7 @@ import { afterNextRender, Component, ElementRef, inject, input, output, signal, 
 import { CardListing, cardMeta } from '../cards/card-listing';
 import { Order, ORDER_STATUS_LABELS } from '../orders/order';
 import { OrderService } from '../orders/order.service';
+import { isReviewed, Review } from '../reviews/review';
 
 @Component({
   selector: 'app-order-detail',
@@ -13,6 +14,7 @@ import { OrderService } from '../orders/order.service';
 export class OrderDetail {
   readonly order = input.required<Order>();
   readonly card = input.required<CardListing>();
+  readonly review = input<Review | null>(null);
   readonly closed = output<void>();
 
   private readonly orders = inject(OrderService);
@@ -21,6 +23,7 @@ export class OrderDetail {
   protected readonly asking = signal(false);
   protected readonly errorMessage = signal('');
   protected readonly statusLabels = ORDER_STATUS_LABELS;
+  protected readonly isReviewed = isReviewed;
   protected readonly cardMeta = cardMeta;
 
   constructor() {

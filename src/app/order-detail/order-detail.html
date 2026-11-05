@@ -38,6 +38,11 @@
       <h3 class="heading">Description</h3>
       <p class="description">{{ card().cardDescription ?? 'No description provided.' }}</p>
 
+      @if (isReviewed(review())) {
+        <h3 class="heading">Your review</h3>
+        <p class="review">{{ review()?.comment }}</p>
+      }
+
       <div class="receipt">
         @switch (order().orderStatus) {
           @case ('pending') {

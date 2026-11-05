@@ -146,6 +146,12 @@ dd {
   line-height: 1.6;
 }
 
+.review {
+  margin: 6px 0 24px;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
 .receipt {
   margin-top: auto;
 }
