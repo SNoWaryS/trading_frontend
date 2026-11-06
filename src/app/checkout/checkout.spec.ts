@@ -4,6 +4,7 @@ import { RouterTestingHarness } from '@angular/router/testing';
 import { Order } from '../orders/order';
 import { OrderService } from '../orders/order.service';
 import { Checkout } from './checkout';
+import { signIn } from '../testing/session';
 
 describe('Checkout', () => {
   let harness: RouterTestingHarness;
@@ -41,6 +42,7 @@ describe('Checkout', () => {
     TestBed.configureTestingModule({
       providers: [provideRouter([{ path: 'checkout/:cardId', component: Checkout }])],
     });
+    signIn();
   });
 
   it('shows the card, seller and total', async () => {

@@ -4,6 +4,7 @@ import { provideRouter } from '@angular/router';
 import { of } from 'rxjs';
 import { CardService } from '../cards/card.service';
 import { Sell } from './sell';
+import { signIn } from '../testing/session';
 
 describe('Sell', () => {
   async function render(providers: object[] = []) {
@@ -11,6 +12,7 @@ describe('Sell', () => {
       imports: [Sell],
       providers: [provideRouter([]), ...providers],
     }).compileComponents();
+    signIn();
 
     const fixture = TestBed.createComponent(Sell);
     await fixture.whenStable();

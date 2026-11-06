@@ -3,6 +3,7 @@ import { provideRouter } from '@angular/router';
 import { of } from 'rxjs';
 import { OrderService } from '../orders/order.service';
 import { MyOrders } from './my-orders';
+import { signIn } from '../testing/session';
 
 describe('MyOrders', () => {
   let fixture: ComponentFixture<MyOrders>;
@@ -17,6 +18,7 @@ describe('MyOrders', () => {
       imports: [MyOrders],
       providers: [provideRouter([]), ...providers],
     }).compileComponents();
+    signIn();
 
     fixture = TestBed.createComponent(MyOrders);
     await fixture.whenStable();

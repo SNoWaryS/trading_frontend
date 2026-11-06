@@ -2,6 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { provideRouter, Router } from '@angular/router';
 import { RouterTestingHarness } from '@angular/router/testing';
 import { SellerProfile } from './seller-profile';
+import { signIn } from '../testing/session';
 
 describe('SellerProfile', () => {
   let harness: RouterTestingHarness;
@@ -23,6 +24,7 @@ describe('SellerProfile', () => {
     TestBed.configureTestingModule({
       providers: [provideRouter([{ path: 'sellers/:username', component: SellerProfile }])],
     });
+    signIn();
   });
 
   it('shows the seller and only their cards', async () => {

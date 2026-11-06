@@ -1,18 +1,10 @@
-import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { HttpErrorResponse } from '@angular/common/http';
 import { Component, inject, signal } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
+import { AuthService } from '../auth/auth.service';
 import { AuthShell } from '../auth-shell/auth-shell';
 import { PrivacyPolicy } from '../privacy-policy/privacy-policy';
-
-const API_URL = 'http://localhost:5041';
-
-interface LoginResponse {
-  userId: number;
-  username: string;
-  name: string;
-  surname: string;
-}
 
 @Component({
   selector: 'app-login',
@@ -21,7 +13,7 @@ interface LoginResponse {
   styleUrl: './login.css'
 })
 export class Login {
-  private readonly http = inject(HttpClient);
+  private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
 
   protected readonly form = new FormGroup({
@@ -55,7 +47,8 @@ export class Login {
     }
 
     this.submitting.set(true);
-    this.http.post<LoginResponse>(`${API_URL}/api/auth/login`, this.form.getRawValue()).subscribe({
+    const { username, password } = this.form.getRawValue();
+    this.auth.login(username, password).subscribe({
       next: () => {
         this.router.navigate(['/home']);
       },

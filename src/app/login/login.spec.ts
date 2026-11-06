@@ -2,6 +2,7 @@ import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter, Router } from '@angular/router';
+import { AuthService } from '../auth/auth.service';
 import { Login } from './login';
 
 describe('Login', () => {
@@ -56,9 +57,11 @@ describe('Login', () => {
     expect(request.request.method).toBe('POST');
     expect(request.request.body).toEqual({ username: 'alice', password: 'secret' });
 
-    request.flush({ userId: 1, username: 'alice', name: 'A', surname: 'B' });
+    const alice = { userId: 1, username: 'alice', name: 'A', surname: 'B', email: 'a@test.local', phoneNumber: null, address: null };
+    request.flush(alice);
 
     expect(navigate).toHaveBeenCalledWith(['/home']);
+    expect(TestBed.inject(AuthService).user()).toEqual(alice);
   });
 
   it('shows an error and clears the password when the login is rejected', async () => {
@@ -71,6 +74,7 @@ describe('Login', () => {
 
     expect(element().querySelector('[role=alert]')?.textContent).toContain('Incorrect username or password');
     expect(element().querySelectorAll('input')[1].value).toBe('');
+    expect(TestBed.inject(AuthService).user()).toBeNull();
   });
 
   it('shows the privacy policy instead of going straight to register', async () => {

@@ -1,14 +1,16 @@
-import { Injectable } from '@angular/core';
-import { BehaviorSubject, map, Observable, of, throwError } from 'rxjs';
+import { inject, Injectable } from '@angular/core';
+import { BehaviorSubject, combineLatest, map, Observable, of, throwError } from 'rxjs';
+import { AuthService } from '../auth/auth.service';
 import { CardListing } from '../cards/card-listing';
 import { Order } from './order';
 
-const SAMPLE_CURRENT_USER = 'seller1';
+// Orders 1 to 3 belong to the sample buyer seller1. Log in as seller1 to see them as your own.
+const SAMPLE_COLLECTOR = 'seller1';
 
 const SAMPLE_ORDERS: Order[] = [
-  { orderId: 1, cardId: 7, buyerName: SAMPLE_CURRENT_USER, orderStatus: 'received', orderPrice: 12500, paymentSlip: null },
-  { orderId: 2, cardId: 4, buyerName: SAMPLE_CURRENT_USER, orderStatus: 'shipped', orderPrice: 8900, paymentSlip: null },
-  { orderId: 3, cardId: 5, buyerName: SAMPLE_CURRENT_USER, orderStatus: 'pending', orderPrice: 1590, paymentSlip: null },
+  { orderId: 1, cardId: 7, buyerName: SAMPLE_COLLECTOR, orderStatus: 'received', orderPrice: 12500, paymentSlip: null },
+  { orderId: 2, cardId: 4, buyerName: SAMPLE_COLLECTOR, orderStatus: 'shipped', orderPrice: 8900, paymentSlip: null },
+  { orderId: 3, cardId: 5, buyerName: SAMPLE_COLLECTOR, orderStatus: 'pending', orderPrice: 1590, paymentSlip: null },
   // Other buyers' orders for the sample user's cards, so the profile has reviews from buyers.
   // Note: these sample cards still show as for sale, because CARDS has no sold status yet.
   { orderId: 4, cardId: 3, buyerName: 'buyer2', orderStatus: 'received', orderPrice: 320, paymentSlip: null },
@@ -19,6 +21,8 @@ const SAMPLE_ORDERS: Order[] = [
 
 @Injectable({ providedIn: 'root' })
 export class OrderService {
+  private readonly auth = inject(AuthService);
+
   // Orders held in memory for now. Replace these methods with HttpClient calls once the API exists.
   private readonly orders = new BehaviorSubject<Order[]>(SAMPLE_ORDERS);
 
@@ -26,19 +30,24 @@ export class OrderService {
     return this.orders.asObservable();
   }
 
-  // Sample user for now. Use the logged-in user once the app has sessions.
+  // The logged-in user's orders.
   getMyOrders(): Observable<Order[]> {
-    return this.orders.pipe(
-      map((orders) => orders.filter((order) => order.buyerName === SAMPLE_CURRENT_USER))
+    return combineLatest([this.orders, this.auth.user$]).pipe(
+      map(([orders, user]) => orders.filter((order) => order.buyerName === user?.username))
     );
   }
 
   placeOrder(card: CardListing, paymentSlip: string): Observable<Order> {
+    const buyerName = this.auth.username();
+    if (!buyerName) {
+      return throwError(() => new Error('Please log in to buy a card'));
+    }
+
     const current = this.orders.value;
     const order: Order = {
       orderId: Math.max(0, ...current.map((existing) => existing.orderId)) + 1,
       cardId: card.cardId,
-      buyerName: SAMPLE_CURRENT_USER,
+      buyerName,
       orderStatus: 'pending',
       orderPrice: card.cardPrice,
       paymentSlip,

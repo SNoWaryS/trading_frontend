@@ -2,6 +2,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { CardListing } from '../cards/card-listing';
 import { CardService } from '../cards/card.service';
 import { AddCard } from './add-card';
+import { signIn } from '../testing/session';
 
 describe('AddCard', () => {
   let fixture: ComponentFixture<AddCard>;
@@ -59,6 +60,7 @@ describe('AddCard', () => {
     URL.revokeObjectURL = vi.fn();
 
     await TestBed.configureTestingModule({ imports: [AddCard] }).compileComponents();
+    signIn();
 
     fixture = TestBed.createComponent(AddCard);
     closed = vi.fn<() => void>();

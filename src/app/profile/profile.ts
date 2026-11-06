@@ -2,6 +2,7 @@ import { Component, computed, inject, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { Router, RouterLink } from '@angular/router';
 import { switchMap } from 'rxjs';
+import { AuthService } from '../auth/auth.service';
 import { CardService } from '../cards/card.service';
 import { DeleteAccount } from '../delete-account/delete-account';
 import { EditProfile } from '../edit-profile/edit-profile';
@@ -19,6 +20,7 @@ import { UserService } from '../users/user.service';
 })
 export class Profile {
   private readonly users = inject(UserService);
+  private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
   private readonly orderService = inject(OrderService);
 
@@ -50,13 +52,16 @@ export class Profile {
   );
 
   protected logOut(): void {
-    this.router.navigate(['/login']);
+    this.auth.logout().subscribe(() => this.router.navigate(['/login']));
   }
 
   protected deleteAccount(): void {
-    this.users.deleteAccount().subscribe(() => {
-      this.deleting.set(false);
-      this.router.navigate(['/login'], { state: { accountDeleted: true } });
-    });
+    this.users
+      .deleteAccount()
+      .pipe(switchMap(() => this.auth.logout()))
+      .subscribe(() => {
+        this.deleting.set(false);
+        this.router.navigate(['/login'], { state: { accountDeleted: true } });
+      });
   }
 }

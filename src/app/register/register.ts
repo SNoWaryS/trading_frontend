@@ -2,9 +2,8 @@ import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Component, inject, signal } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
+import { API_URL } from '../api';
 import { AuthShell } from '../auth-shell/auth-shell';
-
-const API_URL = 'http://localhost:5041';
 
 @Component({
   selector: 'app-register',

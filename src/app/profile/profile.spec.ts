@@ -1,10 +1,12 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter, Router } from '@angular/router';
 import { of } from 'rxjs';
+import { AuthService } from '../auth/auth.service';
 import { ReviewService } from '../reviews/review.service';
 import { OrderService } from '../orders/order.service';
 import { UserService } from '../users/user.service';
 import { Profile } from './profile';
+import { signIn } from '../testing/session';
 
 describe('Profile', () => {
   let fixture: ComponentFixture<Profile>;
@@ -24,6 +26,7 @@ describe('Profile', () => {
       imports: [Profile],
       providers: [provideRouter([]), ...providers],
     }).compileComponents();
+    signIn();
 
     fixture = TestBed.createComponent(Profile);
     await fixture.whenStable();
@@ -149,18 +152,21 @@ describe('Profile', () => {
       expect(value('Email')).toBe('seller1@test.local');
     });
 
-    it('logs out to the login page', async () => {
+    it('logs out, then goes to the login page', async () => {
       await render();
       const navigate = vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
+      const logout = vi.spyOn(TestBed.inject(AuthService), 'logout').mockReturnValue(of(undefined));
 
       button('Log out').click();
 
+      expect(logout).toHaveBeenCalled();
       expect(navigate).toHaveBeenCalledWith(['/login']);
     });
 
-    it('asks before deleting the account', async () => {
+    it('asks before deleting the account, and logs out after deleting it', async () => {
       await render();
       const navigate = vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
+      const logout = vi.spyOn(TestBed.inject(AuthService), 'logout').mockReturnValue(of(undefined));
 
       button('Delete account').click();
       await fixture.whenStable();
@@ -172,6 +178,7 @@ describe('Profile', () => {
       button('Delete account', dialog).click();
       await fixture.whenStable();
 
+      expect(logout).toHaveBeenCalled();
       expect(navigate).toHaveBeenCalledWith(['/login'], { state: { accountDeleted: true } });
     });
 

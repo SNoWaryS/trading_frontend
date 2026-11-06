@@ -1,6 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter, Router } from '@angular/router';
 import { Home } from './home';
+import { signIn } from '../testing/session';
 
 describe('Home', () => {
   let fixture: ComponentFixture<Home>;
@@ -19,6 +20,7 @@ describe('Home', () => {
       imports: [Home],
       providers: [provideRouter([])],
     }).compileComponents();
+    signIn();
 
     fixture = TestBed.createComponent(Home);
     await fixture.whenStable();
