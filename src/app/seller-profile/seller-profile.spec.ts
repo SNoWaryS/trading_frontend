@@ -44,13 +44,24 @@ describe('SellerProfile', () => {
     expect(reviews[0].textContent).toContain('Honest seller');
   });
 
-  it('keeps the seller’s contact details private', async () => {
+  it('shows the seller’s email and phone number as contact links', async () => {
+    await open('seller2');
+
+    const links = Array.from(element().querySelectorAll<HTMLAnchorElement>('.contact-link'));
+    expect(links.map((link) => [link.textContent, link.getAttribute('href')])).toEqual([
+      ['seller2@test.local', 'mailto:seller2@test.local'],
+      ['000-000-0002', 'tel:000-000-0002'],
+    ]);
+  });
+
+  it('says when the seller has no phone number, and never shows their address', async () => {
     await open('seller1');
 
-    const text = element().textContent ?? '';
-    expect(text).toContain('Sample Collector');
-    expect(text).not.toContain('seller1@test.local');
-    expect(text).not.toContain('Sample Road');
+    const contact = element().querySelector('.contact')!;
+    expect(contact.textContent).toContain('seller1@test.local');
+    expect(contact.textContent).toContain('Not provided');
+    expect(contact.querySelector('a[href^="tel:"]')).toBeNull();
+    expect(element().textContent).not.toContain('Sample Road');
   });
 
   it('opens the card details without a link back to the same seller, and can buy from there', async () => {

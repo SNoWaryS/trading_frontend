@@ -19,6 +19,9 @@ const SAMPLE_SELLERS: PublicProfile[] = [2, 3, 4, 5, 6, 7, 8].map((id) => ({
   name: 'Sample',
   surname: `Seller ${id}`,
   username: `seller${id}`,
+  email: `seller${id}@test.local`,
+  // Only seller2 has a phone number, so the page shows both cases. 000 is not a real Thai prefix.
+  phoneNumber: id === 2 ? '000-000-0002' : null,
 }));
 
 @Injectable({ providedIn: 'root' })
@@ -30,12 +33,19 @@ export class UserService {
     return this.user.asObservable();
   }
 
-  // Public details only, so a seller's email, phone number and address are never shown to buyers.
+  // Public details only: buyers see a seller's email and phone number for contact, never their address.
   getPublicProfile(username: string): Observable<PublicProfile | undefined> {
     return this.user.pipe(
       map((current) =>
         [current, ...SAMPLE_SELLERS]
-          .map(({ userId, name, surname, username }) => ({ userId, name, surname, username }))
+          .map(({ userId, name, surname, username, email, phoneNumber }) => ({
+            userId,
+            name,
+            surname,
+            username,
+            email,
+            phoneNumber,
+          }))
           .find((profile) => profile.username === username)
       )
     );

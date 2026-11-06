@@ -89,6 +89,63 @@
   line-height: 1;
 }
 
+.contact {
+  display: flex;
+  align-items: center;
+  gap: 48px;
+  margin-top: 32px;
+  padding: 24px 32px;
+  border: 1px solid var(--green-200);
+  border-radius: 8px;
+  background: #ffffff;
+}
+
+.contact-title {
+  flex: none;
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.contact-list {
+  display: flex;
+  gap: 64px;
+  margin: 0;
+}
+
+.contact-list dt {
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+.contact-list dd {
+  margin: 4px 0 0;
+  font-size: 15px;
+}
+
+.contact-link {
+  color: var(--text);
+  font-weight: 500;
+  text-underline-offset: 3px;
+}
+
+.contact-link:hover {
+  color: var(--forest-hover);
+}
+
+.contact-link:focus-visible {
+  outline: 2px solid var(--forest);
+  outline-offset: 2px;
+}
+
+.missing {
+  color: var(--text-muted);
+  font-style: italic;
+}
+
 .section {
   margin-top: 48px;
 }

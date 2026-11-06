@@ -23,6 +23,26 @@
       </dl>
     </section>
 
+    <section class="contact" aria-labelledby="contact-title">
+      <h2 class="contact-title" id="contact-title">Contact the seller</h2>
+      <dl class="contact-list">
+        <div>
+          <dt>Email</dt>
+          <dd><a class="contact-link" [href]="'mailto:' + seller.email">{{ seller.email }}</a></dd>
+        </div>
+        <div>
+          <dt>Phone number</dt>
+          <dd>
+            @if (seller.phoneNumber; as phone) {
+              <a class="contact-link" [href]="'tel:' + phone">{{ phone }}</a>
+            } @else {
+              <span class="missing">Not provided</span>
+            }
+          </dd>
+        </div>
+      </dl>
+    </section>
+
     <section class="section" aria-labelledby="cards-title">
       <h2 class="section-title" id="cards-title">Cards for sale</h2>
 
