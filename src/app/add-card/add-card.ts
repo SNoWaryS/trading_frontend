@@ -1,6 +1,11 @@
-import { afterNextRender, Component, ElementRef, inject, output, signal, viewChild } from '@angular/core';
+import { CurrencyPipe } from '@angular/common';
+import { afterNextRender, Component, computed, ElementRef, inject, output, signal, viewChild } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { CatalogCard, matchesCatalogSearch } from '../cards/card-catalog';
+import { cardMeta } from '../cards/card-listing';
 import { CardService } from '../cards/card.service';
+import { CatalogService } from '../cards/catalog.service';
 import { PICTURE_ACCEPT, pictureFileError } from '../shared/picture-file';
 
 const MAX_PRICE = 9_999_999_999; // Largest whole-baht value that fits DECIMAL(12,2).
@@ -8,7 +13,7 @@ const WHOLE_NUMBER = /^\d+$/;
 
 @Component({
   selector: 'app-add-card',
-  imports: [ReactiveFormsModule],
+  imports: [CurrencyPipe, ReactiveFormsModule],
   templateUrl: './add-card.html',
   styleUrl: './add-card.css'
 })
@@ -17,33 +22,27 @@ export class AddCard {
 
   private readonly cards = inject(CardService);
   private readonly dialog = viewChild.required<ElementRef<HTMLDialogElement>>('dialog');
+  private readonly catalog = toSignal(inject(CatalogService).getCatalog(), { initialValue: [] });
 
   protected readonly pictureAccept = PICTURE_ACCEPT;
-  protected readonly cardTypes =['Pokémon', 'Trainer', 'Energy'];
-  protected readonly rarities = ['C', 'U', 'R', 'RR', 'AR', 'SR', 'SAR', 'UR'];
-  protected readonly elements = ['Grass', 'Fire', 'Water', 'Lightning', 'Psychic', 'Fighting', 'Darkness', 'Metal', 'Dragon', 'Colorless'];
-  protected readonly stages = ['Basic', 'Stage 1', 'Stage 2'];
+  protected readonly cardMeta = cardMeta;
+
+  protected readonly search = signal('');
+  protected readonly results = computed(() =>
+    this.catalog().filter((card) => matchesCatalogSearch(card, this.search()))
+  );
+  protected readonly selected = signal<CatalogCard | null>(null);
 
   protected readonly form = new FormGroup({
-    cardName: new FormControl('', { nonNullable: true }),
-    cardType: new FormControl('Pokémon', { nonNullable: true }),
-    rarity: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
-    cardElement: new FormControl('', { nonNullable: true }),
-    cardStage: new FormControl('', { nonNullable: true }),
     cardPrice: new FormControl<number | null>(null, [
       Validators.required,
       Validators.min(1),
       Validators.max(MAX_PRICE),
       Validators.pattern(WHOLE_NUMBER),
     ]),
-    referencePrice: new FormControl<number | null>(null, [
-      Validators.min(0),
-      Validators.max(MAX_PRICE),
-      Validators.pattern(WHOLE_NUMBER),
-    ]),
     cardDescription: new FormControl('', { nonNullable: true }),
   });
-  protected readonly picture = signal<string | null>(null);
+  protected readonly photo = signal<string | null>(null);
   protected readonly errorMessage = signal('');
 
   private saved = false;
@@ -52,7 +51,16 @@ export class AddCard {
     afterNextRender(() => this.dialog().nativeElement.showModal());
   }
 
-  protected choosePicture(input: HTMLInputElement): void {
+  protected choose(card: CatalogCard): void {
+    this.selected.set(card);
+    this.errorMessage.set('');
+  }
+
+  protected changeCard(): void {
+    this.selected.set(null);
+  }
+
+  protected choosePhoto(input: HTMLInputElement): void {
     const file = input.files?.[0];
     if (!file) {
       return;
@@ -65,41 +73,35 @@ export class AddCard {
       return;
     }
 
-    this.releasePicture();
-    this.picture.set(URL.createObjectURL(file));
+    this.releasePhoto();
+    this.photo.set(URL.createObjectURL(file));
     this.errorMessage.set('');
   }
 
   protected submit(): void {
-    const { controls } = this.form;
-    const picture = this.picture();
-    const cardName = controls.cardName.value.trim();
+    const card = this.selected();
+    const { cardPrice, cardDescription } = this.form.controls;
 
-    if (!picture) {
-      this.errorMessage.set('Please choose a picture of the card');
-    } else if (!cardName || controls.rarity.invalid || controls.cardPrice.hasError('required')) {
-      this.errorMessage.set('Please fill in all required fields');
-    } else if (controls.cardPrice.invalid) {
+    if (!card) {
+      this.errorMessage.set('Please choose a card from the catalog');
+    } else if (cardPrice.hasError('required')) {
+      this.errorMessage.set('Please enter your price');
+    } else if (cardPrice.invalid) {
       this.errorMessage.set('Price must be a whole number from 1 to 9,999,999,999');
-    } else if (controls.referencePrice.invalid) {
-      this.errorMessage.set('Reference price must be a whole number up to 9,999,999,999');
     } else {
-      const values = this.form.getRawValue();
       this.cards
         .addListing({
-          cardName,
-          cardType: values.cardType,
-          rarity: values.rarity,
-          cardElement: values.cardElement || null,
-          cardStage: values.cardStage || null,
-          cardPrice: values.cardPrice!,
-          referencePrice: values.referencePrice,
-          cardPicture: picture,
-          cardDescription: values.cardDescription.trim() || null,
+          catalogId: card.catalogId,
+          cardPrice: cardPrice.value!,
+          cardPicture: this.photo(),
+          cardDescription: cardDescription.value.trim() || null,
         })
-        .subscribe(() => {
-          this.saved = true;
-          this.close();
+        .subscribe({
+          next: () => {
+            this.saved = true;
+            this.close();
+          },
+          error: (error: Error) => this.errorMessage.set(error.message),
         });
     }
   }
@@ -111,16 +113,16 @@ export class AddCard {
 
   protected finish(): void {
     if (!this.saved) {
-      this.releasePicture();
+      this.releasePhoto();
     }
     this.closed.emit();
   }
 
-  private releasePicture(): void {
-    const picture = this.picture();
-    if (picture) {
-      URL.revokeObjectURL(picture);
-      this.picture.set(null);
+  private releasePhoto(): void {
+    const photo = this.photo();
+    if (photo) {
+      URL.revokeObjectURL(photo);
+      this.photo.set(null);
     }
   }
 }

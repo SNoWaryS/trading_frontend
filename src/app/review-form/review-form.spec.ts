@@ -7,6 +7,7 @@ import { ReviewForm } from './review-form';
 
 const card: CardListing = {
   cardId: 7,
+  catalogId: 7,
   cardName: 'Sample Card 07',
   sellerName: 'seller7',
   cardType: 'Pokémon',

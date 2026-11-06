@@ -1,23 +1,16 @@
 <dialog #dialog class="dialog" aria-labelledby="add-card-title" (close)="finish()" (keydown.escape)="close()">
   <form class="layout" [formGroup]="form" (ngSubmit)="submit()" novalidate>
     <div class="picture-side">
+      @if (photo() ?? selected()?.cardPicture; as source) {
+        <img class="preview" [class.catalog]="!photo()" [src]="source" [alt]="photo() ? 'Your photo of the card' : 'Catalog picture of the card'" />
+      } @else {
+        <p class="picture-empty">Choose a card to see it here</p>
+      }
+
       <label class="upload">
-        <input
-          #pictureInput
-          class="upload-input"
-          type="file"
-          [accept]="pictureAccept"
-          (change)="choosePicture(pictureInput)"
-        />
-        @if (picture(); as source) {
-          <img class="preview" [src]="source" alt="Selected card picture" />
-          <span class="upload-action">Change picture</span>
-        } @else {
-          <span class="placeholder">
-            <span class="upload-action">Choose a picture</span>
-            <span class="upload-hint">JPG, PNG or WebP, up to 5 MB</span>
-          </span>
-        }
+        <input #photoInput class="upload-input" type="file" [accept]="pictureAccept" (change)="choosePhoto(photoInput)" />
+        <span class="upload-action">{{ photo() ? 'Change your photo' : 'Add a photo of your card (optional)' }}</span>
+        <span class="upload-hint">JPG, PNG or WebP, up to 5 MB. Without one, the catalog picture is shown.</span>
       </label>
     </div>
 
@@ -25,65 +18,69 @@
       <h2 class="title" id="add-card-title">Add a card</h2>
 
       <div class="group">
-        <label class="label" for="cardName">Card name</label>
-        <input class="field" id="cardName" type="text" formControlName="cardName" maxlength="100" autocomplete="off" autofocus />
+        <span class="label" id="catalog-label">Card</span>
+
+        @if (selected(); as card) {
+          <div class="selected" aria-labelledby="catalog-label">
+            <div>
+              <p class="selected-name">{{ card.cardName }}</p>
+              <p class="selected-meta">
+                {{ card.setName }} {{ card.cardNumber }} · {{ cardMeta(card) }}
+              </p>
+              <p class="selected-meta">
+                Reference price
+                <strong>{{ card.referencePrice === null ? 'Not set yet' : (card.referencePrice | currency: 'THB' : 'symbol-narrow' : '1.0-0') }}</strong>
+              </p>
+            </div>
+            <button class="change" type="button" (click)="changeCard()">Change card</button>
+          </div>
+        } @else {
+          <input
+            #searchBox
+            class="field"
+            type="search"
+            placeholder="Search by card name, set or number"
+            aria-labelledby="catalog-label"
+            autocomplete="off"
+            autofocus
+            [value]="search()"
+            (input)="search.set(searchBox.value)"
+          />
+          @if (results().length) {
+            <ul class="results" aria-labelledby="catalog-label">
+              @for (card of results(); track card.catalogId) {
+                <li>
+                  <button class="result" type="button" (click)="choose(card)">
+                    <span class="result-name">{{ card.cardName }}</span>
+                    <span class="result-meta">{{ card.cardNumber }} · {{ cardMeta(card) }}</span>
+                    <span class="result-price">
+                      {{ card.referencePrice === null ? '—' : (card.referencePrice | currency: 'THB' : 'symbol-narrow' : '1.0-0') }}
+                    </span>
+                  </button>
+                </li>
+              }
+            </ul>
+          } @else {
+            <p class="no-results">No cards in the catalog match "{{ search() }}". Only catalog cards can be sold.</p>
+          }
+        }
       </div>
 
-      <div class="row">
-        <div class="group">
-          <label class="label" for="cardType">Type</label>
-          <select class="field" id="cardType" formControlName="cardType">
-            @for (type of cardTypes; track type) {
-              <option [value]="type">{{ type }}</option>
-            }
-          </select>
-        </div>
-        <div class="group">
-          <label class="label" for="rarity">Rarity</label>
-          <select class="field" id="rarity" formControlName="rarity">
-            <option value="">Select</option>
-            @for (rarity of rarities; track rarity) {
-              <option [value]="rarity">{{ rarity }}</option>
-            }
-          </select>
-        </div>
-      </div>
-
-      <div class="row">
-        <div class="group">
-          <label class="label" for="cardElement">Element (optional)</label>
-          <select class="field" id="cardElement" formControlName="cardElement">
-            <option value="">None</option>
-            @for (element of elements; track element) {
-              <option [value]="element">{{ element }}</option>
-            }
-          </select>
-        </div>
-        <div class="group">
-          <label class="label" for="cardStage">Stage (optional)</label>
-          <select class="field" id="cardStage" formControlName="cardStage">
-            <option value="">None</option>
-            @for (stage of stages; track stage) {
-              <option [value]="stage">{{ stage }}</option>
-            }
-          </select>
-        </div>
-      </div>
-
-      <div class="row">
-        <div class="group">
-          <label class="label" for="cardPrice">Price (฿)</label>
-          <input class="field" id="cardPrice" type="number" min="1" step="1" formControlName="cardPrice" />
-        </div>
-        <div class="group">
-          <label class="label" for="referencePrice">Reference price (optional)</label>
-          <input class="field" id="referencePrice" type="number" min="0" step="1" formControlName="referencePrice" />
-        </div>
+      <div class="group">
+        <label class="label" for="cardPrice">Your price (฿)</label>
+        <input class="field" id="cardPrice" type="number" min="1" step="1" formControlName="cardPrice" />
       </div>
 
       <div class="group">
         <label class="label" for="cardDescription">Description (optional)</label>
-        <textarea class="field description" id="cardDescription" rows="2" maxlength="1000" formControlName="cardDescription"></textarea>
+        <textarea
+          class="field description"
+          id="cardDescription"
+          rows="2"
+          maxlength="1000"
+          formControlName="cardDescription"
+          placeholder="Condition, sleeves, anything buyers should know"
+        ></textarea>
       </div>
 
       <div class="message">

@@ -9,19 +9,33 @@ describe('AddCard', () => {
 
   const element = () => fixture.nativeElement as HTMLElement;
   const alert = () => element().querySelector('[role=alert]')?.textContent;
+  const resultNames = () => Array.from(element().querySelectorAll('.result-name')).map((name) => name.textContent);
+
+  async function search(term: string) {
+    const box = element().querySelector<HTMLInputElement>('input[type=search]')!;
+    box.value = term;
+    box.dispatchEvent(new Event('input'));
+    await fixture.whenStable();
+  }
+
+  async function pick(name: string) {
+    Array.from(element().querySelectorAll<HTMLButtonElement>('.result'))
+      .find((button) => button.querySelector('.result-name')?.textContent === name)!
+      .click();
+    await fixture.whenStable();
+  }
 
   function fill(values: Record<string, string>) {
     for (const [id, value] of Object.entries(values)) {
-      const field = element().querySelector<HTMLInputElement | HTMLSelectElement>(`#${id}`)!;
+      const field = element().querySelector<HTMLInputElement | HTMLTextAreaElement>(`#${id}`)!;
       field.value = value;
-      field.dispatchEvent(new Event(field.tagName === 'SELECT' ? 'change' : 'input'));
+      field.dispatchEvent(new Event('input'));
     }
   }
 
-  function choosePicture(type = 'image/png', bytes = 10) {
+  function attachPhoto(type = 'image/png') {
     const input = element().querySelector<HTMLInputElement>('input[type=file]')!;
-    const file = new File([new Uint8Array(bytes)], 'card', { type });
-    Object.defineProperty(input, 'files', { value: [file], configurable: true });
+    Object.defineProperty(input, 'files', { value: [new File(['x'], 'card', { type })], configurable: true });
     input.dispatchEvent(new Event('change'));
   }
 
@@ -30,7 +44,7 @@ describe('AddCard', () => {
     await fixture.whenStable();
   }
 
-  async function myListings() {
+  function myListings() {
     let listings: CardListing[] = [];
     TestBed.inject(CardService)
       .getMyListings()
@@ -38,12 +52,10 @@ describe('AddCard', () => {
     return listings;
   }
 
-  const required = { cardName: 'Froakie', rarity: 'AR', cardPrice: '1500' };
-
   beforeEach(async () => {
     HTMLDialogElement.prototype.showModal = vi.fn();
     HTMLDialogElement.prototype.close = vi.fn();
-    URL.createObjectURL = vi.fn(() => 'blob:picture');
+    URL.createObjectURL = vi.fn(() => 'blob:photo');
     URL.revokeObjectURL = vi.fn();
 
     await TestBed.configureTestingModule({ imports: [AddCard] }).compileComponents();
@@ -54,99 +66,131 @@ describe('AddCard', () => {
     await fixture.whenStable();
   });
 
-  it('adds the card to the listings and closes', async () => {
-    const before = (await myListings()).length;
+  it('lists the whole catalog before searching', () => {
+    expect(resultNames().length).toBe(12);
+  });
 
-    choosePicture();
-    fill({ ...required, cardElement: 'Water', referencePrice: '1600', cardDescription: 'Mint' });
+  it('searches the catalog by name, set or number', async () => {
+    await search('card 1');
+    expect(resultNames()).toEqual(['Sample Card 10', 'Sample Card 11', 'Sample Card 12']);
+
+    await search('009/100');
+    expect(resultNames()).toEqual(['Sample Card 09']);
+
+    await search('sample set');
+    expect(resultNames().length).toBe(12);
+  });
+
+  it('says only catalog cards can be sold when nothing matches', async () => {
+    await search('Charizard');
+
+    expect(resultNames()).toEqual([]);
+    expect(element().querySelector('.no-results')?.textContent).toContain('Only catalog cards can be sold');
+  });
+
+  it('shows the chosen card with its reference price, and can change it', async () => {
+    await pick('Sample Card 09');
+
+    const selected = element().querySelector('.selected')!;
+    expect(selected.textContent).toContain('Sample Card 09');
+    expect(selected.textContent).toContain('2,100');
+    expect(element().querySelector('input[type=search]')).toBeNull();
+
+    element().querySelector<HTMLButtonElement>('.change')!.click();
+    await fixture.whenStable();
+
+    expect(element().querySelector('.selected')).toBeNull();
+    expect(resultNames().length).toBe(12);
+  });
+
+  it('lists the chosen catalog card with the details taken from the catalog', async () => {
+    const before = myListings().length;
+
+    await pick('Sample Card 09');
+    attachPhoto();
+    fill({ cardPrice: '3500', cardDescription: '  Mint, kept in a sleeve  ' });
     await submit();
 
-    const listings = await myListings();
+    const listings = myListings();
     expect(listings.length).toBe(before + 1);
     expect(listings[0]).toMatchObject({
-      cardName: 'Froakie',
+      catalogId: 9,
+      cardName: 'Sample Card 09',
       cardType: 'Pokémon',
-      rarity: 'AR',
-      cardElement: 'Water',
-      cardStage: null,
-      cardPrice: 1500,
-      referencePrice: 1600,
-      cardDescription: 'Mint',
-      cardPicture: 'blob:picture',
+      rarity: 'SR',
+      cardElement: 'Fighting',
+      cardStage: 'Stage 1',
+      referencePrice: 2100,
+      cardPrice: 3500,
+      cardPicture: 'blob:photo',
+      cardDescription: 'Mint, kept in a sleeve',
       sellerName: 'seller1',
     });
     expect(closed).toHaveBeenCalled();
     expect(URL.revokeObjectURL).not.toHaveBeenCalled();
   });
 
-  it('stores empty optional fields as null', async () => {
-    choosePicture();
-    fill(required);
+  it('accepts any price, however far it is from the reference price', async () => {
+    await pick('Sample Card 09');
+    fill({ cardPrice: '1' });
     await submit();
 
-    expect((await myListings())[0]).toMatchObject({
-      cardElement: null,
-      cardStage: null,
-      referencePrice: null,
-      cardDescription: null,
-    });
+    expect(myListings()[0]).toMatchObject({ catalogId: 9, cardPrice: 1 });
   });
 
-  it('requires a picture', async () => {
-    const before = (await myListings()).length;
-
-    fill(required);
+  it('uses the catalog picture when the seller adds no photo', async () => {
+    await pick('Sample Card 10');
+    fill({ cardPrice: '900' });
     await submit();
 
-    expect(alert()).toContain('picture');
-    expect((await myListings()).length).toBe(before);
+    expect(myListings()[0]).toMatchObject({ catalogId: 10, cardPicture: 'Frogg_login.jpg', cardDescription: null });
+  });
+
+  it('requires a catalog card', async () => {
+    const before = myListings().length;
+
+    fill({ cardPrice: '900' });
+    await submit();
+
+    expect(alert()).toContain('choose a card from the catalog');
+    expect(myListings().length).toBe(before);
     expect(closed).not.toHaveBeenCalled();
   });
 
   it.each([
-    [{ cardName: '   ' }, 'required'],
-    [{ rarity: '' }, 'required'],
-    [{ cardPrice: '' }, 'required'],
-    [{ cardPrice: '0' }, 'Price must be'],
-    [{ cardPrice: '12.5' }, 'Price must be'],
-    [{ referencePrice: '12.5' }, 'Reference price must be'],
-  ])('rejects %j', async (override, message) => {
-    const before = (await myListings()).length;
+    ['', 'enter your price'],
+    ['0', 'Price must be'],
+    ['12.5', 'Price must be'],
+  ])('rejects the price %j', async (price, message) => {
+    const before = myListings().length;
 
-    choosePicture();
-    fill({ ...required, ...override });
+    await pick('Sample Card 09');
+    fill({ cardPrice: price });
     await submit();
 
     expect(alert()).toContain(message);
-    expect((await myListings()).length).toBe(before);
+    expect(myListings().length).toBe(before);
   });
 
   it('rejects files that are not supported pictures', async () => {
-    choosePicture('application/pdf');
+    attachPhoto('application/pdf');
     await fixture.whenStable();
 
     expect(alert()).toContain('JPG, PNG or WebP');
     expect(URL.createObjectURL).not.toHaveBeenCalled();
   });
 
-  it('rejects pictures over 5 MB', async () => {
-    choosePicture('image/png', 5 * 1024 * 1024 + 1);
-    await fixture.whenStable();
+  it('adds nothing and releases the photo on cancel', async () => {
+    const before = myListings().length;
 
-    expect(alert()).toContain('5 MB');
-    expect(URL.createObjectURL).not.toHaveBeenCalled();
-  });
-
-  it('adds nothing and releases the picture on cancel', async () => {
-    const before = (await myListings()).length;
-
-    choosePicture();
-    fill(required);
+    await pick('Sample Card 09');
+    attachPhoto();
+    fill({ cardPrice: '900' });
     element().querySelector<HTMLButtonElement>('.secondary')!.click();
     await fixture.whenStable();
 
-    expect((await myListings()).length).toBe(before);
-    expect(URL.revokeObjectURL).toHaveBeenCalledWith('blob:picture');
+    expect(myListings().length).toBe(before);
+    expect(URL.revokeObjectURL).toHaveBeenCalledWith('blob:photo');
     expect(closed).toHaveBeenCalled();
   });
 });

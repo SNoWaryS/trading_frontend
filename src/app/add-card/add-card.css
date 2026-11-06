@@ -17,25 +17,48 @@
 
 .layout {
   display: grid;
-  grid-template-columns: 340px 1fr;
+  grid-template-columns: 320px 1fr;
 }
 
 .picture-side {
   display: flex;
+  flex-direction: column;
+  gap: 20px;
   padding: 32px;
   background: linear-gradient(160deg, var(--green-100), var(--green-300));
+}
+
+.preview {
+  display: block;
+  width: 100%;
+  max-height: 380px;
+  border-radius: 8px;
+  box-shadow: 0 24px 40px -20px rgb(36 56 42 / 50%);
+  object-fit: contain;
+}
+
+/* The sample picture has a stray icon on its left edge, so the sides are cropped. */
+.preview.catalog {
+  aspect-ratio: 423 / 653;
+  object-fit: cover;
+}
+
+.picture-empty {
+  display: grid;
+  place-items: center;
+  height: 360px;
+  margin: 0;
+  border: 1px dashed var(--forest);
+  border-radius: 8px;
+  color: var(--text-muted);
+  font-size: 13px;
 }
 
 .upload {
   position: relative;
   display: flex;
-  flex: 1;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 16px;
-  min-height: 360px;
-  border-radius: 8px;
+  gap: 4px;
   cursor: pointer;
 }
 
@@ -44,24 +67,6 @@
   width: 1px;
   height: 1px;
   opacity: 0;
-}
-
-.upload:has(.upload-input:focus-visible) {
-  outline: 2px solid var(--forest);
-  outline-offset: 4px;
-}
-
-.placeholder {
-  display: flex;
-  flex: 1;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  align-self: stretch;
-  border: 1px dashed var(--forest);
-  border-radius: 8px;
-  text-align: center;
 }
 
 .upload-action {
@@ -74,15 +79,7 @@
 .upload-hint {
   color: var(--text-muted);
   font-size: 12px;
-}
-
-.preview {
-  display: block;
-  width: 100%;
-  max-height: 420px;
-  border-radius: 8px;
-  box-shadow: 0 24px 40px -20px rgb(36 56 42 / 50%);
-  object-fit: contain;
+  line-height: 1.5;
 }
 
 .content {
@@ -98,15 +95,9 @@
   line-height: 1.1;
 }
 
-.row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 20px;
-}
-
 .group {
   min-width: 0;
-  margin-bottom: 14px;
+  margin-bottom: 18px;
 }
 
 .label {
@@ -132,11 +123,11 @@
   color: var(--text);
   font: inherit;
   font-size: 14px;
-  transition: border-color 200ms ease;
 }
 
-.field:hover {
-  border-bottom-color: var(--green-400);
+.field::placeholder {
+  color: var(--text-muted);
+  opacity: 1;
 }
 
 .field:focus-visible {
@@ -150,6 +141,113 @@
   padding-top: 6px;
   line-height: 1.5;
   resize: none;
+}
+
+.results {
+  max-height: 220px;
+  margin: 8px 0 0;
+  padding: 0;
+  overflow-y: auto;
+  border: 1px solid var(--green-200);
+  border-radius: 6px;
+  background: #ffffff;
+  list-style: none;
+}
+
+.results li + li {
+  border-top: 1px solid var(--green-200);
+}
+
+.result {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 2px 16px;
+  width: 100%;
+  padding: 10px 14px;
+  border: 0;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.result:hover {
+  background: var(--green-100);
+}
+
+.result:focus-visible {
+  outline: 2px solid var(--forest);
+  outline-offset: -2px;
+}
+
+.result-name {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.result-meta {
+  grid-column: 1;
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+.result-price {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+  align-self: center;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.no-results {
+  margin: 10px 0 0;
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+.selected {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: 8px;
+  padding: 14px 16px;
+  border: 1px solid var(--green-400);
+  border-radius: 6px;
+  background: var(--green-100);
+}
+
+.selected-name {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 500;
+}
+
+.selected-meta {
+  margin: 4px 0 0;
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+.selected-meta strong {
+  color: var(--text);
+  font-weight: 600;
+}
+
+.change {
+  flex: none;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--text);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
 }
 
 .message {
@@ -181,10 +279,11 @@
   letter-spacing: 0.14em;
   text-transform: uppercase;
   cursor: pointer;
-  transition: background-color 200ms ease;
 }
 
-.button:focus-visible {
+.button:focus-visible,
+.change:focus-visible,
+.upload:has(.upload-input:focus-visible) {
   outline: 2px solid var(--forest);
   outline-offset: 2px;
 }
@@ -196,7 +295,6 @@
 }
 
 .primary:hover {
-  border-color: var(--forest-hover);
   background: var(--forest-hover);
 }
 
