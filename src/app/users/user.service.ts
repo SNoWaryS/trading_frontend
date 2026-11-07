@@ -1,28 +1,21 @@
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
-import { filter, map, Observable, of, throwError } from 'rxjs';
+import { catchError, filter, map, Observable, of, tap, throwError } from 'rxjs';
+import { API_URL } from '../api';
 import { AuthService } from '../auth/auth.service';
 import { ProfileChanges, PublicProfile, UserProfile } from './user-profile';
 
-// The sample sellers in the card listings. seller1 is also a real test account (see back/seed_test_user.sql).
-const SAMPLE_SELLERS: PublicProfile[] = [
-  { userId: 1, name: 'Sample', surname: 'Collector', username: 'seller1', email: 'seller1@test.local', phoneNumber: null },
-  ...[2, 3, 4, 5, 6, 7, 8].map((id) => ({
-    userId: id,
-    name: 'Sample',
-    surname: `Seller ${id}`,
-    username: `seller${id}`,
-    email: `seller${id}@test.local`,
-    // Only seller2 has a phone number, so the page shows both cases. 000 is not a real Thai prefix.
-    phoneNumber: id === 2 ? '000-000-0002' : null,
-  })),
-];
+const USERS_URL = `${API_URL}/api/users`;
 
-function toPublic({ userId, name, surname, username, email, phoneNumber }: PublicProfile): PublicProfile {
-  return { userId, name, surname, username, email, phoneNumber };
+function apiError(fallback: string) {
+  return (error: HttpErrorResponse) =>
+    throwError(() => new Error(typeof error.error?.message === 'string' ? error.error.message : fallback));
 }
 
+// Users (the USERS table), through the profile API.
 @Injectable({ providedIn: 'root' })
 export class UserService {
+  private readonly http = inject(HttpClient);
   private readonly auth = inject(AuthService);
 
   // The logged-in user, loaded from the API at login.
@@ -31,30 +24,28 @@ export class UserService {
   }
 
   // Public details only: buyers see a seller's email and phone number for contact, never their address.
-  // The logged-in user's real details replace the sample ones when they are a sample seller too.
+  // undefined when nobody has this username or the account was deleted.
   getPublicProfile(username: string): Observable<PublicProfile | undefined> {
-    return this.auth.user$.pipe(
-      map((current) => {
-        const sellers = current ? [current, ...SAMPLE_SELLERS] : SAMPLE_SELLERS;
-        const seller = sellers.find((profile) => profile.username === username);
-        return seller && toPublic(seller);
-      })
+    return this.http.get<PublicProfile>(`${USERS_URL}/${encodeURIComponent(username)}`).pipe(
+      catchError((error: HttpErrorResponse) => (error.status === 404 ? of(undefined) : throwError(() => error)))
     );
   }
 
-  // Changes the details shown in this browser only. The API to save them is not built yet.
+  // Saves the changes, then shows them everywhere the logged-in user appears.
   updateProfile(changes: ProfileChanges): Observable<UserProfile> {
-    const user = this.auth.user();
-    if (!user) {
-      return throwError(() => new Error('Please log in to edit your profile'));
-    }
-    const updated = { ...user, ...changes };
-    this.auth.setSession(updated);
-    return of(updated);
+    return this.http.put<UserProfile>(`${USERS_URL}/me`, changes).pipe(
+      tap((user) => this.auth.setSession(user)),
+      catchError(apiError('Cannot save your profile right now. Please try again.'))
+    );
   }
 
-  // The API should block sign-in now and remove the account and its activity 30 days after its last order ends.
-  deleteAccount(): Observable<void> {
-    return of(undefined);
+  // Needs the user's password. The API signs them out, blocks sign-in from now on, and removes the account and its
+  // activity 30 days later. It refuses while one of their orders is still pending or shipped.
+  deleteAccount(password: string): Observable<void> {
+    return this.http.delete<void>(`${USERS_URL}/me`, { body: { password } }).pipe(
+      tap(() => this.auth.setSession(null)),
+      map(() => undefined),
+      catchError(apiError('Cannot delete your account right now. Please try again.'))
+    );
   }
 }

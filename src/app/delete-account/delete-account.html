@@ -7,18 +7,42 @@
   (close)="closed.emit()"
   (keydown.escape)="close()"
 >
-  <h2 class="title" id="delete-title">Delete your account?</h2>
-  <div id="delete-description">
-    <p class="text">Deleting your account withdraws your consent under our privacy policy.</p>
-    <ul class="points">
-      <li>You will be signed out and can no longer use this account.</li>
-      <li>Your account and its activity are removed 30 days after your last order ends.</li>
-      <li>This cannot be undone.</li>
-    </ul>
-  </div>
+  <form (submit)="$event.preventDefault(); confirm()" novalidate>
+    <h2 class="title" id="delete-title">Delete your account?</h2>
+    <div id="delete-description">
+      <p class="text">Deleting your account withdraws your consent under our privacy policy.</p>
+      <ul class="points">
+        <li>You will be signed out and can no longer use this account.</li>
+        <li>Your cards that nobody has ordered are taken off sale.</li>
+        <li>Your account and its activity are removed 30 days after your last order ends.</li>
+        <li>You cannot delete it while an order you bought or sold is still pending or shipped.</li>
+        <li>This cannot be undone.</li>
+      </ul>
+    </div>
 
-  <div class="actions">
-    <button class="button secondary" type="button" autofocus (click)="close()">Keep my account</button>
-    <button class="button danger" type="button" (click)="confirmed.emit()">Delete account</button>
-  </div>
+    <div class="group">
+      <label class="label" for="delete-password">Enter your password to confirm</label>
+      <input
+        class="field"
+        id="delete-password"
+        type="password"
+        autocomplete="current-password"
+        [value]="password()"
+        (input)="password.set($any($event.target).value)"
+      />
+    </div>
+
+    <div class="message">
+      @if (errorMessage()) {
+        <p class="error" role="alert">{{ errorMessage() }}</p>
+      }
+    </div>
+
+    <div class="actions">
+      <button class="button secondary" type="button" autofocus (click)="close()">Keep my account</button>
+      <button class="button danger" type="submit" [disabled]="deleting()">
+        {{ deleting() ? 'Deleting…' : 'Delete account' }}
+      </button>
+    </div>
+  </form>
 </dialog>

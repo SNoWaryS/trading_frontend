@@ -38,7 +38,7 @@
 
     <footer class="footer">
       <button class="button secondary" type="button" (click)="close()">Cancel</button>
-      <button class="button primary" type="submit">Save changes</button>
+      <button class="button primary" type="submit" [disabled]="saving()">{{ saving() ? 'Saving…' : 'Save changes' }}</button>
     </footer>
   </form>
 </dialog>

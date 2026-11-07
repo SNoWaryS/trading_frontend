@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter, Router } from '@angular/router';
-import { of } from 'rxjs';
+import { of, throwError } from 'rxjs';
 import { AuthService } from '../auth/auth.service';
 import { ReviewService } from '../reviews/review.service';
 import { OrderService } from '../orders/order.service';
@@ -9,6 +9,7 @@ import { Profile } from './profile';
 import { signIn } from '../testing/session';
 import { provideSampleCards } from '../testing/sample-cards';
 import { SampleOrderService } from '../testing/sample-orders';
+import { SAMPLE_PASSWORD } from '../testing/sample-users';
 
 describe('Profile', () => {
   let fixture: ComponentFixture<Profile>;
@@ -154,6 +155,18 @@ describe('Profile', () => {
       expect(value('Email')).toBe('seller1@test.local');
     });
 
+    it('shows an error from the API and keeps the form open', async () => {
+      await render();
+      button('Edit profile').click();
+      await fixture.whenStable();
+
+      await fill({ 'profile-email': 'seller2@test.local' });
+      await save();
+
+      expect(element().querySelector('app-edit-profile [role=alert]')?.textContent).toContain('already used');
+      expect(value('Email')).toBe('seller1@test.local');
+    });
+
     it('logs out, then goes to the login page', async () => {
       await render();
       const navigate = vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
@@ -165,23 +178,61 @@ describe('Profile', () => {
       expect(navigate).toHaveBeenCalledWith(['/login']);
     });
 
-    it('asks before deleting the account, and logs out after deleting it', async () => {
-      await render();
-      const navigate = vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
-      const logout = vi.spyOn(TestBed.inject(AuthService), 'logout').mockReturnValue(of(undefined));
-
+    async function openDelete() {
       button('Delete account').click();
       await fixture.whenStable();
+      return element().querySelector('app-delete-account')!;
+    }
 
-      const dialog = element().querySelector('app-delete-account')!;
+    async function confirmDelete(dialog: Element, password: string) {
+      const field = dialog.querySelector<HTMLInputElement>('#delete-password')!;
+      field.value = password;
+      field.dispatchEvent(new Event('input'));
+      dialog.querySelector('form')!.dispatchEvent(new Event('submit'));
+      await fixture.whenStable();
+    }
+
+    it('asks for the password before deleting the account, then goes to the login page', async () => {
+      await render();
+      const navigate = vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
+
+      const dialog = await openDelete();
       expect(dialog.textContent).toContain('30 days');
+      expect(dialog.textContent).toContain('still pending or shipped');
       expect(navigate).not.toHaveBeenCalled();
 
-      button('Delete account', dialog).click();
-      await fixture.whenStable();
+      await confirmDelete(dialog, SAMPLE_PASSWORD);
 
-      expect(logout).toHaveBeenCalled();
+      expect(TestBed.inject(AuthService).user()).toBeNull();
       expect(navigate).toHaveBeenCalledWith(['/login'], { state: { accountDeleted: true } });
+    });
+
+    it.each([
+      ['', 'enter your password'],
+      ['wrong password', 'Incorrect password'],
+    ])('keeps the account when the password is %j', async (password, message) => {
+      await render();
+      const navigate = vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
+
+      const dialog = await openDelete();
+      await confirmDelete(dialog, password);
+
+      expect(dialog.querySelector('[role=alert]')?.textContent).toContain(message);
+      expect(TestBed.inject(AuthService).user()).not.toBeNull();
+      expect(navigate).not.toHaveBeenCalled();
+    });
+
+    it("shows the API's reason when the account cannot be deleted yet", async () => {
+      await render();
+      vi.spyOn(TestBed.inject(UserService), 'deleteAccount').mockReturnValue(
+        throwError(() => new Error('You still have orders that are not finished.'))
+      );
+
+      const dialog = await openDelete();
+      await confirmDelete(dialog, SAMPLE_PASSWORD);
+
+      expect(dialog.querySelector('[role=alert]')?.textContent).toContain('orders that are not finished');
+      expect(dialog.querySelector<HTMLButtonElement>('.danger')!.disabled).toBe(false);
     });
 
     it('keeps the account when the user changes their mind', async () => {

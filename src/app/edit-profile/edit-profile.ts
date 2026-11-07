@@ -27,6 +27,7 @@ export class EditProfile implements OnInit {
     address: new FormControl('', { nonNullable: true }),
   });
   protected readonly errorMessage = signal('');
+  protected readonly saving = signal(false);
 
   constructor() {
     afterNextRender(() => this.dialog().nativeElement.showModal());
@@ -63,9 +64,17 @@ export class EditProfile implements OnInit {
       return;
     }
 
+    this.errorMessage.set('');
+    this.saving.set(true);
     this.users
       .updateProfile({ name, surname, email, phoneNumber: phoneNumber || null, address: address || null })
-      .subscribe(() => this.close());
+      .subscribe({
+        next: () => this.close(),
+        error: (error: Error) => {
+          this.saving.set(false);
+          this.errorMessage.set(error.message);
+        },
+      });
   }
 
   protected close(): void {

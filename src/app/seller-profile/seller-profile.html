@@ -101,7 +101,7 @@
         (buy)="buy(card)"
       />
     }
-  } @else {
+  } @else if (seller() === undefined) {
     <section class="missing">
       <h1 class="title">Seller not found</h1>
       <p class="subtitle">This seller does not exist or has deleted their account.</p>

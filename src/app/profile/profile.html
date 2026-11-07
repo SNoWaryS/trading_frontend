@@ -107,7 +107,7 @@
       <app-edit-profile [user]="user" (closed)="editing.set(false)" />
     }
     @if (deleting()) {
-      <app-delete-account (confirmed)="deleteAccount()" (closed)="deleting.set(false)" />
+      <app-delete-account (deleted)="accountDeleted()" (closed)="deleting.set(false)" />
     }
   }
 </main>

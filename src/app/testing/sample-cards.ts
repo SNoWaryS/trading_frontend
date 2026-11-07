@@ -5,6 +5,7 @@ import { CatalogCard } from '../cards/card-catalog';
 import { CardListing, ListingChanges, NewCardListing } from '../cards/card-listing';
 import { CardService } from '../cards/card.service';
 import { provideSampleOrders } from './sample-orders';
+import { provideSampleUsers } from './sample-users';
 
 // For tests: listings held in memory instead of the listings API, with the same sample cards the database seed
 // (back/seed_sample_listings.sql) uses for card ids 1 to 8. The sample orders and reviews refer to these ids.
@@ -150,7 +151,7 @@ export class SampleCardService implements Pick<CardService, keyof CardService> {
   }
 }
 
-// Sample cards, orders and reviews in memory.
+// Sample cards, orders, reviews and users in memory.
 export function provideSampleCards(): Provider[] {
-  return [{ provide: CardService, useClass: SampleCardService }, ...provideSampleOrders()];
+  return [{ provide: CardService, useClass: SampleCardService }, ...provideSampleOrders(), ...provideSampleUsers()];
 }

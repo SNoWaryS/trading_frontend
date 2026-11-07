@@ -42,7 +42,7 @@
   display: flex;
   justify-content: flex-end;
   gap: 12px;
-  margin-top: 28px;
+  margin-top: 16px;
 }
 
 .button {
@@ -81,4 +81,58 @@
 
 .danger:hover {
   background: #742424;
+}
+
+.danger:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+.group {
+  margin-top: 20px;
+}
+
+.label {
+  display: block;
+  color: var(--text-muted);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  line-height: 16px;
+  text-transform: uppercase;
+}
+
+.field {
+  box-sizing: border-box;
+  width: 100%;
+  height: 38px;
+  padding: 0;
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  border-radius: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  font-size: 15px;
+}
+
+.field:hover {
+  border-bottom-color: var(--green-400);
+}
+
+.field:focus-visible {
+  border-bottom-color: var(--forest);
+  box-shadow: 0 1px 0 0 var(--forest);
+}
+
+.message {
+  min-height: 20px;
+  margin-top: 8px;
+}
+
+.error {
+  margin: 0;
+  color: var(--error);
+  font-size: 13px;
 }

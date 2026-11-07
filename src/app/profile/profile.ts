@@ -55,13 +55,9 @@ export class Profile {
     this.auth.logout().subscribe(() => this.router.navigate(['/login']));
   }
 
-  protected deleteAccount(): void {
-    this.users
-      .deleteAccount()
-      .pipe(switchMap(() => this.auth.logout()))
-      .subscribe(() => {
-        this.deleting.set(false);
-        this.router.navigate(['/login'], { state: { accountDeleted: true } });
-      });
+  // The API has already signed the user out.
+  protected accountDeleted(): void {
+    this.deleting.set(false);
+    this.router.navigate(['/login'], { state: { accountDeleted: true } });
   }
 }
