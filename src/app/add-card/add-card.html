@@ -100,7 +100,7 @@
 
       <div class="actions">
         <button class="button secondary" type="button" (click)="close()">Cancel</button>
-        <button class="button primary" type="submit">List card</button>
+        <button class="button primary" type="submit" [disabled]="saving()">{{ saving() ? 'Listing…' : 'List card' }}</button>
       </div>
     </div>
   </form>

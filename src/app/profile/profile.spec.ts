@@ -7,6 +7,7 @@ import { OrderService } from '../orders/order.service';
 import { UserService } from '../users/user.service';
 import { Profile } from './profile';
 import { signIn } from '../testing/session';
+import { provideSampleCards } from '../testing/sample-cards';
 
 describe('Profile', () => {
   let fixture: ComponentFixture<Profile>;
@@ -24,7 +25,7 @@ describe('Profile', () => {
   async function render(providers: object[] = []) {
     await TestBed.configureTestingModule({
       imports: [Profile],
-      providers: [provideRouter([]), ...providers],
+      providers: [...provideSampleCards(), provideRouter([]), ...providers],
     }).compileComponents();
     signIn();
 

@@ -4,7 +4,6 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { API_URL } from '../api';
 import { CatalogCard } from '../cards/card-catalog';
 import { CardListing } from '../cards/card-listing';
-import { CardService } from '../cards/card.service';
 import { CATALOG_SEARCH_LIMIT } from '../cards/catalog.service';
 import { AddCard, SEARCH_DELAY_MS } from './add-card';
 import { signIn } from '../testing/session';
@@ -87,12 +86,31 @@ describe('AddCard', () => {
     await fixture.whenStable();
   }
 
-  function myListings() {
-    let listings: CardListing[] = [];
-    TestBed.inject(CardService)
-      .getMyListings()
-      .subscribe((value) => (listings = value));
-    return listings;
+  const LISTINGS = `${API_URL}/api/listings`;
+
+  function listingRequest(): TestRequest {
+    const request = http.expectOne(LISTINGS);
+    expect(request.request.method).toBe('POST');
+    return request;
+  }
+
+  // What the API answers after listing a catalog card.
+  function listingOf(card: CatalogCard, listing: Partial<CardListing>): CardListing {
+    return {
+      cardId: 100,
+      catalogId: card.catalogId,
+      cardName: card.cardName,
+      sellerName: 'seller1',
+      cardType: card.cardType,
+      rarity: card.rarity,
+      referencePrice: card.referencePrice,
+      cardPrice: 1,
+      cardStage: card.cardStage,
+      cardElement: card.cardElement,
+      cardPicture: card.cardPicture,
+      cardDescription: null,
+      ...listing,
+    };
   }
 
   beforeEach(async () => {
@@ -167,31 +185,27 @@ describe('AddCard', () => {
     expect(resultNames()).toEqual(['เคโรมัตซึ', 'เกโคกาชิระ']);
   });
 
-  it('lists the chosen catalog card with the details taken from the catalog', async () => {
-    const before = myListings().length;
-
+  it('sends the chosen catalog card, price, description and photo to the listings API', async () => {
     await pick('เคโรมัตซึ');
     attachPhoto();
     fill({ cardPrice: '3500', cardDescription: '  Mint, kept in a sleeve  ' });
     await submit();
 
-    const listings = myListings();
-    expect(listings.length).toBe(before + 1);
-    expect(listings[0]).toMatchObject({
-      catalogId: 36,
-      cardName: 'เคโรมัตซึ',
-      cardType: 'โปเกมอน',
-      rarity: 'SR',
-      cardElement: 'น้ำ',
-      cardStage: 'พื้นฐาน',
-      referencePrice: 2100,
-      cardPrice: 3500,
-      cardPicture: 'blob:photo',
-      cardDescription: 'Mint, kept in a sleeve',
-      sellerName: 'seller1',
-    });
+    const request = listingRequest();
+    const form = request.request.body as FormData;
+    expect(form.get('catalogId')).toBe('36');
+    expect(form.get('cardPrice')).toBe('3500');
+    expect(form.get('cardDescription')).toBe('Mint, kept in a sleeve');
+    expect((form.get('photo') as File).name).toBe('card');
+    expect(element().querySelector<HTMLButtonElement>('.primary')!.disabled).toBe(true);
+    expect(closed).not.toHaveBeenCalled();
+
+    request.flush(listingOf(KEROMATSU, { cardPrice: 3500, cardPicture: 'http://localhost:5041/uploads/listings/x.png' }));
+    await fixture.whenStable();
+
     expect(closed).toHaveBeenCalled();
-    expect(URL.revokeObjectURL).not.toHaveBeenCalled();
+    // The listing shows the uploaded photo, so the preview is released.
+    expect(URL.revokeObjectURL).toHaveBeenCalledWith('blob:photo');
   });
 
   it('accepts any price, however far it is from the reference price', async () => {
@@ -199,25 +213,42 @@ describe('AddCard', () => {
     fill({ cardPrice: '1' });
     await submit();
 
-    expect(myListings()[0]).toMatchObject({ catalogId: 36, cardPrice: 1 });
+    const request = listingRequest();
+    expect((request.request.body as FormData).get('cardPrice')).toBe('1');
+    request.flush(listingOf(KEROMATSU, { cardPrice: 1 }));
   });
 
-  it('uses the catalog picture when the seller adds no photo', async () => {
+  it('sends no photo when the seller adds none, so the catalog picture is used', async () => {
     await pick('เกโคกาชิระ');
     fill({ cardPrice: '900' });
     await submit();
 
-    expect(myListings()[0]).toMatchObject({ catalogId: 37, cardPicture: 'https://example.test/37.png', cardDescription: null });
+    const request = listingRequest();
+    const form = request.request.body as FormData;
+    expect(form.has('photo')).toBe(false);
+    expect(form.get('cardDescription')).toBe('');
+    request.flush(listingOf(GEKKOGA, { cardPrice: 900 }));
+  });
+
+  it("shows the API's message and keeps the form open when listing fails", async () => {
+    await pick('เคโรมัตซึ');
+    fill({ cardPrice: '900' });
+    await submit();
+
+    listingRequest().flush({ message: 'This card is not in the catalog' }, { status: 400, statusText: 'Bad Request' });
+    await fixture.whenStable();
+
+    expect(alert()).toContain('This card is not in the catalog');
+    expect(closed).not.toHaveBeenCalled();
+    expect(element().querySelector<HTMLButtonElement>('.primary')!.disabled).toBe(false);
   });
 
   it('requires a catalog card', async () => {
-    const before = myListings().length;
-
     fill({ cardPrice: '900' });
     await submit();
 
     expect(alert()).toContain('choose a card from the catalog');
-    expect(myListings().length).toBe(before);
+    http.expectNone(LISTINGS);
     expect(closed).not.toHaveBeenCalled();
   });
 
@@ -226,14 +257,12 @@ describe('AddCard', () => {
     ['0', 'Price must be'],
     ['12.5', 'Price must be'],
   ])('rejects the price %j', async (price, message) => {
-    const before = myListings().length;
-
     await pick('เคโรมัตซึ');
     fill({ cardPrice: price });
     await submit();
 
     expect(alert()).toContain(message);
-    expect(myListings().length).toBe(before);
+    http.expectNone(LISTINGS);
   });
 
   it('rejects files that are not supported pictures', async () => {
@@ -245,15 +274,13 @@ describe('AddCard', () => {
   });
 
   it('adds nothing and releases the photo on cancel', async () => {
-    const before = myListings().length;
-
     await pick('เคโรมัตซึ');
     attachPhoto();
     fill({ cardPrice: '900' });
     element().querySelector<HTMLButtonElement>('.secondary')!.click();
     await fixture.whenStable();
 
-    expect(myListings().length).toBe(before);
+    http.expectNone(LISTINGS);
     expect(URL.revokeObjectURL).toHaveBeenCalledWith('blob:photo');
     expect(closed).toHaveBeenCalled();
   });

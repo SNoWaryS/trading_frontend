@@ -3,6 +3,7 @@ import { provideRouter, Router } from '@angular/router';
 import { RouterTestingHarness } from '@angular/router/testing';
 import { SellerProfile } from './seller-profile';
 import { signIn } from '../testing/session';
+import { provideSampleCards } from '../testing/sample-cards';
 
 describe('SellerProfile', () => {
   let harness: RouterTestingHarness;
@@ -22,7 +23,7 @@ describe('SellerProfile', () => {
     HTMLDialogElement.prototype.showModal = vi.fn();
     HTMLDialogElement.prototype.close = vi.fn();
     TestBed.configureTestingModule({
-      providers: [provideRouter([{ path: 'sellers/:username', component: SellerProfile }])],
+      providers: [...provideSampleCards(), provideRouter([{ path: 'sellers/:username', component: SellerProfile }])],
     });
     signIn();
   });

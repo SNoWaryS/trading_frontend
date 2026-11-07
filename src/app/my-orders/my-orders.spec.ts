@@ -4,6 +4,7 @@ import { of } from 'rxjs';
 import { OrderService } from '../orders/order.service';
 import { MyOrders } from './my-orders';
 import { signIn } from '../testing/session';
+import { provideSampleCards } from '../testing/sample-cards';
 
 describe('MyOrders', () => {
   let fixture: ComponentFixture<MyOrders>;
@@ -16,7 +17,7 @@ describe('MyOrders', () => {
   async function render(providers: object[] = []) {
     await TestBed.configureTestingModule({
       imports: [MyOrders],
-      providers: [provideRouter([]), ...providers],
+      providers: [...provideSampleCards(), provideRouter([]), ...providers],
     }).compileComponents();
     signIn();
 

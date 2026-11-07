@@ -1,86 +1,36 @@
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
-import { BehaviorSubject, combineLatest, map, Observable, of, throwError } from 'rxjs';
+import { BehaviorSubject, catchError, combineLatest, filter, map, Observable, tap, throwError } from 'rxjs';
+import { API_URL } from '../api';
 import { AuthService } from '../auth/auth.service';
-import { CardListing, NewCardListing, toListing } from './card-listing';
-import { CatalogCard } from './card-catalog';
+import { CardListing, ListingChanges, NewCardListing } from './card-listing';
 
-const SAMPLE_PICTURE = 'Frogg_login.jpg';
+const LISTINGS_URL = `${API_URL}/api/listings`;
 
-function entry(
-  catalogId: number,
-  cardElement: string,
-  rarity: string,
-  cardStage: string,
-  referencePrice: number
-): CatalogCard {
-  const number = String(catalogId).padStart(3, '0');
-  return {
-    catalogId,
-    cardName: `Sample Card ${String(catalogId).padStart(2, '0')}`,
-    setName: 'Sample Set',
-    cardNumber: `${number}/100`,
-    cardType: 'Pokémon',
-    rarity,
-    cardStage,
-    cardElement,
-    cardPicture: SAMPLE_PICTURE,
-    referencePrice,
-  };
+// Turns an API error into an Error with the API's message, so forms can show it.
+function apiError(fallback: string) {
+  return (error: HttpErrorResponse) =>
+    throwError(() => new Error(typeof error.error?.message === 'string' ? error.error.message : fallback));
 }
 
-// The catalog cards the sample listings sell. Listings are still sample data until the listings API exists;
-// the add card form searches the real catalog through the API.
-const SAMPLE_CATALOG: CatalogCard[] = [
-  entry(1, 'Water', 'AR', 'Basic', 1400),
-  entry(2, 'Fire', 'SR', 'Stage 1', 2650),
-  entry(3, 'Grass', 'R', 'Basic', 350),
-  entry(4, 'Lightning', 'SAR', 'Stage 2', 9500),
-  entry(5, 'Psychic', 'AR', 'Basic', 1590),
-  entry(6, 'Water', 'RR', 'Stage 1', 720),
-  entry(7, 'Fire', 'UR', 'Stage 2', 13000),
-  entry(8, 'Grass', 'C', 'Basic', 60),
-];
-
-// The sample seller who owns listings 1, 3 and 6. Log in as seller1 to see them as your own.
-const SAMPLE_COLLECTOR = 'seller1';
-
-function sample(cardId: number, cardPrice: number, sellerName = `seller${cardId}`): CardListing {
-  const catalog = SAMPLE_CATALOG.find((card) => card.catalogId === cardId)!;
-  return toListing(catalog, {
-    cardId,
-    sellerName,
-    cardPrice,
-    cardPicture: null,
-    cardDescription: `Sample description for a ${catalog.rarity} ${catalog.cardElement} card. The seller's own notes will appear here.`,
-  });
-}
-
-// Sample listings: listing N sells catalog card N.
-const SAMPLE_LISTINGS: CardListing[] = [
-  sample(1, 1250),
-  sample(2, 2800),
-  sample(3, 320, SAMPLE_COLLECTOR),
-  sample(4, 8900),
-  sample(5, 1590),
-  sample(6, 680, SAMPLE_COLLECTOR),
-  sample(7, 12500),
-  sample(8, 45),
-];
-
+// Cards for sale (the CARDS table), through the listings API.
+// The listings are kept here once loaded, so every page shares them and sees changes straight away.
 @Injectable({ providedIn: 'root' })
 export class CardService {
+  private readonly http = inject(HttpClient);
   private readonly auth = inject(AuthService);
+  private readonly listings = new BehaviorSubject<CardListing[] | null>(null);
+  private loading = false;
 
-  // Sample data held in memory for now. Replace these methods with HttpClient calls once the API exists.
-  private readonly listings = new BehaviorSubject(SAMPLE_LISTINGS);
-
+  // Every listing, newest first. Asks the API again each time, and shows the listings already loaded meanwhile.
   getListings(): Observable<CardListing[]> {
-    return this.listings.asObservable();
+    this.load();
+    return this.listings.pipe(filter((listings): listings is CardListing[] => listings !== null));
   }
 
   // The logged-in user's listings.
   getMyListings(): Observable<CardListing[]> {
-    return combineLatest([this.listings, this.auth.user$]).pipe(
+    return combineLatest([this.getListings(), this.auth.user$]).pipe(
       map(([listings, user]) => listings.filter((card) => card.sellerName === user?.username))
     );
   }
@@ -89,24 +39,52 @@ export class CardService {
     return card.sellerName === this.auth.username();
   }
 
-  // Only cards in the catalog can be listed: `catalog` is the card the seller chose from the catalog API.
-  // The listings API must check catalog_id too.
-  addListing(card: NewCardListing, catalog: CatalogCard): Observable<CardListing> {
-    const sellerName = this.auth.username();
-    if (catalog.catalogId !== card.catalogId) {
-      return throwError(() => new Error('This card is not in the catalog'));
+  // Sends the listing as a form, so the photo can go with it. The API checks the card is in the catalog.
+  addListing(card: NewCardListing): Observable<CardListing> {
+    const form = new FormData();
+    form.set('catalogId', String(card.catalogId));
+    form.set('cardPrice', String(card.cardPrice));
+    form.set('cardDescription', card.cardDescription ?? '');
+    if (card.photo) {
+      form.set('photo', card.photo);
     }
-    if (!sellerName) {
-      return throwError(() => new Error('Please log in to sell a card'));
-    }
+    return this.http.post<CardListing>(LISTINGS_URL, form).pipe(
+      tap((listing) => this.listings.next([listing, ...(this.listings.value ?? [])])),
+      catchError(apiError('Cannot list this card right now. Please try again.'))
+    );
+  }
 
-    const current = this.listings.value;
-    const listing = toListing(catalog, {
-      ...card,
-      cardId: Math.max(0, ...current.map((existing) => existing.cardId)) + 1,
-      sellerName,
+  updateListing(cardId: number, changes: ListingChanges): Observable<CardListing> {
+    return this.http.put<CardListing>(`${LISTINGS_URL}/${cardId}`, changes).pipe(
+      tap((updated) =>
+        this.listings.next((this.listings.value ?? []).map((card) => (card.cardId === cardId ? updated : card)))
+      ),
+      catchError(apiError('Cannot save this card right now. Please try again.'))
+    );
+  }
+
+  removeListing(cardId: number): Observable<void> {
+    return this.http.delete<void>(`${LISTINGS_URL}/${cardId}`).pipe(
+      tap(() => this.listings.next((this.listings.value ?? []).filter((card) => card.cardId !== cardId))),
+      catchError(apiError('Cannot remove this card right now. Please try again.'))
+    );
+  }
+
+  private load(): void {
+    if (this.loading) {
+      return;
+    }
+    this.loading = true;
+    this.http.get<CardListing[]>(LISTINGS_URL).subscribe({
+      next: (listings) => {
+        this.loading = false;
+        this.listings.next(listings);
+      },
+      // Keep what is already shown; with nothing loaded yet, show no cards.
+      error: () => {
+        this.loading = false;
+        this.listings.next(this.listings.value ?? []);
+      },
     });
-    this.listings.next([listing, ...current]);
-    return of(listing);
   }
 }

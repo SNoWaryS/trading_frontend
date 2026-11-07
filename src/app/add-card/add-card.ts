@@ -65,10 +65,12 @@ export class AddCard {
     ]),
     cardDescription: new FormControl('', { nonNullable: true }),
   });
+  // A preview address for the chosen photo; the file itself is uploaded when the card is listed.
   protected readonly photo = signal<string | null>(null);
   protected readonly errorMessage = signal('');
+  protected readonly saving = signal(false);
 
-  private saved = false;
+  private photoFile: File | null = null;
 
   constructor() {
     afterNextRender(() => this.dialog().nativeElement.showModal());
@@ -97,6 +99,7 @@ export class AddCard {
     }
 
     this.releasePhoto();
+    this.photoFile = file;
     this.photo.set(URL.createObjectURL(file));
     this.errorMessage.set('');
   }
@@ -111,23 +114,22 @@ export class AddCard {
       this.errorMessage.set('Please enter your price');
     } else if (cardPrice.invalid) {
       this.errorMessage.set('Price must be a whole number from 1 to 9,999,999,999');
-    } else {
+    } else if (!this.saving()) {
+      this.saving.set(true);
+      this.errorMessage.set('');
       this.cards
-        .addListing(
-          {
-            catalogId: card.catalogId,
-            cardPrice: cardPrice.value!,
-            cardPicture: this.photo(),
-            cardDescription: cardDescription.value.trim() || null,
-          },
-          card
-        )
+        .addListing({
+          catalogId: card.catalogId,
+          cardPrice: Number(cardPrice.value),
+          cardDescription: cardDescription.value.trim() || null,
+          photo: this.photoFile,
+        })
         .subscribe({
-          next: () => {
-            this.saved = true;
-            this.close();
+          next: () => this.close(),
+          error: (error: Error) => {
+            this.saving.set(false);
+            this.errorMessage.set(error.message);
           },
-          error: (error: Error) => this.errorMessage.set(error.message),
         });
     }
   }
@@ -137,10 +139,9 @@ export class AddCard {
     this.finish();
   }
 
+  // The listing shows the uploaded photo from the API, so the preview is no longer needed either way.
   protected finish(): void {
-    if (!this.saved) {
-      this.releasePhoto();
-    }
+    this.releasePhoto();
     this.closed.emit();
   }
 
@@ -150,5 +151,6 @@ export class AddCard {
       URL.revokeObjectURL(photo);
       this.photo.set(null);
     }
+    this.photoFile = null;
   }
 }

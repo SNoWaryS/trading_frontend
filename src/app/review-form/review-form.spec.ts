@@ -4,6 +4,7 @@ import { Order } from '../orders/order';
 import { Review } from '../reviews/review';
 import { ReviewService } from '../reviews/review.service';
 import { ReviewForm } from './review-form';
+import { provideSampleCards } from '../testing/sample-cards';
 
 const card: CardListing = {
   cardId: 7,
@@ -37,7 +38,7 @@ describe('ReviewForm', () => {
   const alert = () => element().querySelector('[role=alert]')?.textContent;
 
   async function render(order: Order) {
-    await TestBed.configureTestingModule({ imports: [ReviewForm] }).compileComponents();
+    await TestBed.configureTestingModule({ imports: [ReviewForm], providers: provideSampleCards() }).compileComponents();
     fixture = TestBed.createComponent(ReviewForm);
     fixture.componentRef.setInput('order', order);
     fixture.componentRef.setInput('card', card);

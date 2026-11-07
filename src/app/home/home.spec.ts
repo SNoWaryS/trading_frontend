@@ -2,6 +2,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter, Router } from '@angular/router';
 import { Home } from './home';
 import { signIn } from '../testing/session';
+import { provideSampleCards } from '../testing/sample-cards';
 
 describe('Home', () => {
   let fixture: ComponentFixture<Home>;
@@ -18,7 +19,7 @@ describe('Home', () => {
 
     await TestBed.configureTestingModule({
       imports: [Home],
-      providers: [provideRouter([])],
+      providers: [...provideSampleCards(), provideRouter([])],
     }).compileComponents();
     signIn();
 

@@ -23,12 +23,49 @@
             <p class="meta">{{ cardMeta(card) }}</p>
             <h2 class="name">{{ card.cardName }}</h2>
 
-            <div class="prices">
-              <p class="price">{{ card.cardPrice | currency: 'THB' : 'symbol-narrow' : '1.0-0' }}</p>
-              @if (card.referencePrice !== null) {
-                <p class="reference">Ref. {{ card.referencePrice | currency: 'THB' : 'symbol-narrow' : '1.0-0' }}</p>
-              }
-            </div>
+            @if (editingId() === card.cardId) {
+              <form class="edit" [formGroup]="editForm" (ngSubmit)="save(card)" novalidate>
+                <label class="edit-label" [for]="'price-' + card.cardId">Your price (฿)</label>
+                <input class="edit-field" [id]="'price-' + card.cardId" type="number" min="1" step="1" formControlName="cardPrice" />
+                @if (card.referencePrice !== null) {
+                  <p class="reference">Ref. {{ card.referencePrice | currency: 'THB' : 'symbol-narrow' : '1.0-0' }}</p>
+                }
+
+                <label class="edit-label" [for]="'description-' + card.cardId">Description</label>
+                <textarea
+                  class="edit-field edit-description"
+                  [id]="'description-' + card.cardId"
+                  rows="3"
+                  maxlength="1000"
+                  formControlName="cardDescription"
+                ></textarea>
+
+                <div class="card-actions">
+                  <button class="card-action" type="button" (click)="cancelEdit()">Cancel</button>
+                  <button class="card-action strong" type="submit" [disabled]="busyId() === card.cardId">
+                    {{ busyId() === card.cardId ? 'Saving…' : 'Save' }}
+                  </button>
+                </div>
+              </form>
+            } @else {
+              <div class="prices">
+                <p class="price">{{ card.cardPrice | currency: 'THB' : 'symbol-narrow' : '1.0-0' }}</p>
+                @if (card.referencePrice !== null) {
+                  <p class="reference">Ref. {{ card.referencePrice | currency: 'THB' : 'symbol-narrow' : '1.0-0' }}</p>
+                }
+              </div>
+
+              <div class="card-actions">
+                <button class="card-action" type="button" (click)="edit(card)" [disabled]="busyId() === card.cardId">Edit</button>
+                <button class="card-action danger" type="button" (click)="remove(card)" [disabled]="busyId() === card.cardId">
+                  {{ busyId() === card.cardId ? 'Removing…' : 'Remove' }}
+                </button>
+              </div>
+            }
+
+            @if (errorFor(card); as message) {
+              <p class="card-error" role="alert">{{ message }}</p>
+            }
           </div>
         </li>
       }

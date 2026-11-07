@@ -5,6 +5,7 @@ import { Order } from '../orders/order';
 import { OrderService } from '../orders/order.service';
 import { Checkout } from './checkout';
 import { signIn } from '../testing/session';
+import { provideSampleCards } from '../testing/sample-cards';
 
 describe('Checkout', () => {
   let harness: RouterTestingHarness;
@@ -40,7 +41,7 @@ describe('Checkout', () => {
     URL.createObjectURL = vi.fn(() => 'blob:slip');
     URL.revokeObjectURL = vi.fn();
     TestBed.configureTestingModule({
-      providers: [provideRouter([{ path: 'checkout/:cardId', component: Checkout }])],
+      providers: [...provideSampleCards(), provideRouter([{ path: 'checkout/:cardId', component: Checkout }])],
     });
     signIn();
   });
