@@ -1,15 +1,24 @@
 import { CurrencyPipe } from '@angular/common';
-import { afterNextRender, Component, computed, ElementRef, inject, output, signal, viewChild } from '@angular/core';
-import { toSignal } from '@angular/core/rxjs-interop';
+import { afterNextRender, Component, ElementRef, inject, output, signal, viewChild } from '@angular/core';
+import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { CatalogCard, matchesCatalogSearch } from '../cards/card-catalog';
+import { catchError, debounceTime, distinctUntilChanged, map, of, startWith, switchMap } from 'rxjs';
+import { CatalogCard } from '../cards/card-catalog';
 import { cardMeta } from '../cards/card-listing';
 import { CardService } from '../cards/card.service';
-import { CatalogService } from '../cards/catalog.service';
+import { CATALOG_SEARCH_LIMIT, CatalogService } from '../cards/catalog.service';
 import { PICTURE_ACCEPT, pictureFileError } from '../shared/picture-file';
 
 const MAX_PRICE = 9_999_999_999; // Largest whole-baht value that fits DECIMAL(12,2).
 const WHOLE_NUMBER = /^\d+$/;
+export const SEARCH_DELAY_MS = 250; // Waits for the seller to stop typing before asking the API.
+
+// One answer from the catalog API.
+interface CatalogSearch {
+  term: string;
+  cards: CatalogCard[];
+  failed: boolean;
+}
 
 @Component({
   selector: 'app-add-card',
@@ -22,14 +31,28 @@ export class AddCard {
 
   private readonly cards = inject(CardService);
   private readonly dialog = viewChild.required<ElementRef<HTMLDialogElement>>('dialog');
-  private readonly catalog = toSignal(inject(CatalogService).getCatalog(), { initialValue: [] });
+  private readonly catalog = inject(CatalogService);
 
   protected readonly pictureAccept = PICTURE_ACCEPT;
   protected readonly cardMeta = cardMeta;
+  protected readonly searchLimit = CATALOG_SEARCH_LIMIT;
 
   protected readonly search = signal('');
-  protected readonly results = computed(() =>
-    this.catalog().filter((card) => matchesCatalogSearch(card, this.search()))
+  // The latest search answer; null while the first one is loading.
+  protected readonly found = toSignal(
+    toObservable(this.search).pipe(
+      map((term) => term.trim()),
+      debounceTime(SEARCH_DELAY_MS),
+      distinctUntilChanged(),
+      switchMap((term) =>
+        this.catalog.search(term).pipe(
+          map((cards): CatalogSearch => ({ term, cards, failed: false })),
+          catchError(() => of<CatalogSearch>({ term, cards: [], failed: true }))
+        )
+      ),
+      startWith(null)
+    ),
+    { initialValue: null }
   );
   protected readonly selected = signal<CatalogCard | null>(null);
 
@@ -90,12 +113,15 @@ export class AddCard {
       this.errorMessage.set('Price must be a whole number from 1 to 9,999,999,999');
     } else {
       this.cards
-        .addListing({
-          catalogId: card.catalogId,
-          cardPrice: cardPrice.value!,
-          cardPicture: this.photo(),
-          cardDescription: cardDescription.value.trim() || null,
-        })
+        .addListing(
+          {
+            catalogId: card.catalogId,
+            cardPrice: cardPrice.value!,
+            cardPicture: this.photo(),
+            cardDescription: cardDescription.value.trim() || null,
+          },
+          card
+        )
         .subscribe({
           next: () => {
             this.saved = true;

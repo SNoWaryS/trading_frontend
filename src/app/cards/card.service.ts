@@ -2,7 +2,44 @@ import { inject, Injectable } from '@angular/core';
 import { BehaviorSubject, combineLatest, map, Observable, of, throwError } from 'rxjs';
 import { AuthService } from '../auth/auth.service';
 import { CardListing, NewCardListing, toListing } from './card-listing';
-import { SAMPLE_CATALOG } from './catalog.service';
+import { CatalogCard } from './card-catalog';
+
+const SAMPLE_PICTURE = 'Frogg_login.jpg';
+
+function entry(
+  catalogId: number,
+  cardElement: string,
+  rarity: string,
+  cardStage: string,
+  referencePrice: number
+): CatalogCard {
+  const number = String(catalogId).padStart(3, '0');
+  return {
+    catalogId,
+    cardName: `Sample Card ${String(catalogId).padStart(2, '0')}`,
+    setName: 'Sample Set',
+    cardNumber: `${number}/100`,
+    cardType: 'Pokémon',
+    rarity,
+    cardStage,
+    cardElement,
+    cardPicture: SAMPLE_PICTURE,
+    referencePrice,
+  };
+}
+
+// The catalog cards the sample listings sell. Listings are still sample data until the listings API exists;
+// the add card form searches the real catalog through the API.
+const SAMPLE_CATALOG: CatalogCard[] = [
+  entry(1, 'Water', 'AR', 'Basic', 1400),
+  entry(2, 'Fire', 'SR', 'Stage 1', 2650),
+  entry(3, 'Grass', 'R', 'Basic', 350),
+  entry(4, 'Lightning', 'SAR', 'Stage 2', 9500),
+  entry(5, 'Psychic', 'AR', 'Basic', 1590),
+  entry(6, 'Water', 'RR', 'Stage 1', 720),
+  entry(7, 'Fire', 'UR', 'Stage 2', 13000),
+  entry(8, 'Grass', 'C', 'Basic', 60),
+];
 
 // The sample seller who owns listings 1, 3 and 6. Log in as seller1 to see them as your own.
 const SAMPLE_COLLECTOR = 'seller1';
@@ -52,11 +89,11 @@ export class CardService {
     return card.sellerName === this.auth.username();
   }
 
-  // Only cards in the catalog can be listed. The API must check this too.
-  addListing(card: NewCardListing): Observable<CardListing> {
-    const catalog = SAMPLE_CATALOG.find((entry) => entry.catalogId === card.catalogId);
+  // Only cards in the catalog can be listed: `catalog` is the card the seller chose from the catalog API.
+  // The listings API must check catalog_id too.
+  addListing(card: NewCardListing, catalog: CatalogCard): Observable<CardListing> {
     const sellerName = this.auth.username();
-    if (!catalog) {
+    if (catalog.catalogId !== card.catalogId) {
       return throwError(() => new Error('This card is not in the catalog'));
     }
     if (!sellerName) {

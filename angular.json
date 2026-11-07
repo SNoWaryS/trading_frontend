@@ -30,9 +30,6 @@
             ],
             "server": "src/main.server.ts",
             "outputMode": "server",
-            "security": {
-              "allowedHosts": ["*.devtunnels.ms"]
-            },
             "ssr": {
               "entry": "src/server.ts"
             }
@@ -63,9 +60,6 @@
         },
         "serve": {
           "builder": "@angular/build:dev-server",
-          "options": {
-            "allowedHosts": [".devtunnels.ms"]
-          },
           "configurations": {
             "production": {
               "buildTarget": "trading:build:production"

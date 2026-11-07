@@ -46,22 +46,31 @@
             [value]="search()"
             (input)="search.set(searchBox.value)"
           />
-          @if (results().length) {
-            <ul class="results" aria-labelledby="catalog-label">
-              @for (card of results(); track card.catalogId) {
-                <li>
-                  <button class="result" type="button" (click)="choose(card)">
-                    <span class="result-name">{{ card.cardName }}</span>
-                    <span class="result-meta">{{ card.cardNumber }} · {{ cardMeta(card) }}</span>
-                    <span class="result-price">
-                      {{ card.referencePrice === null ? '—' : (card.referencePrice | currency: 'THB' : 'symbol-narrow' : '1.0-0') }}
-                    </span>
-                  </button>
-                </li>
+          @if (found(); as answer) {
+            @if (answer.failed) {
+              <p class="no-results" role="alert">Cannot load the catalog right now. Please try again.</p>
+            } @else if (answer.cards.length) {
+              <ul class="results" aria-labelledby="catalog-label">
+                @for (card of answer.cards; track card.catalogId) {
+                  <li>
+                    <button class="result" type="button" (click)="choose(card)">
+                      <span class="result-name">{{ card.cardName }}</span>
+                      <span class="result-meta">{{ card.setName }} {{ card.cardNumber }} · {{ cardMeta(card) }}</span>
+                      <span class="result-price">
+                        {{ card.referencePrice === null ? '—' : (card.referencePrice | currency: 'THB' : 'symbol-narrow' : '1.0-0') }}
+                      </span>
+                    </button>
+                  </li>
+                }
+              </ul>
+              @if (answer.cards.length === searchLimit) {
+                <p class="no-results">Showing the first {{ searchLimit }} cards. Type more of the name, set or number to narrow it down.</p>
               }
-            </ul>
+            } @else {
+              <p class="no-results">No cards in the catalog match "{{ answer.term }}". Only catalog cards can be sold.</p>
+            }
           } @else {
-            <p class="no-results">No cards in the catalog match "{{ search() }}". Only catalog cards can be sold.</p>
+            <p class="no-results">Loading the catalog…</p>
           }
         }
       </div>

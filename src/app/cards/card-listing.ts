@@ -47,5 +47,6 @@ export function toListing(
 }
 
 export function cardMeta(card: Pick<CardListing, 'rarity' | 'cardElement' | 'cardStage'>): string {
-  return [card.rarity, card.cardElement, card.cardStage].filter(Boolean).join(' · ');
+  // The catalog uses '-' for a card with no rarity.
+  return [card.rarity, card.cardElement, card.cardStage].filter((part) => part && part !== '-').join(' · ');
 }

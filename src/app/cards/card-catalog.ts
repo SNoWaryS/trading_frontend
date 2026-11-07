@@ -11,11 +11,3 @@ export interface CatalogCard {
   cardPicture: string | null;
   referencePrice: number | null;
 }
-
-export function matchesCatalogSearch(card: CatalogCard, term: string): boolean {
-  const query = term.trim().toLowerCase();
-  return (
-    !query ||
-    [card.cardName, card.setName, card.cardNumber].some((value) => value?.toLowerCase().includes(query))
-  );
-}
