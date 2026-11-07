@@ -20,12 +20,25 @@ describe('Sell', () => {
     return fixture.nativeElement as HTMLElement;
   }
 
+  it('marks sold cards and no longer offers to edit or remove them', async () => {
+    const element = await render();
+    TestBed.inject(CardService).markSold(3);
+    await TestBed.inject(ApplicationRef).whenStable();
+
+    const tile = Array.from(element.querySelectorAll('.listing')).find(
+      (item) => item.querySelector('.name')?.textContent === 'Sample Card 03'
+    )!;
+    expect(tile.querySelector('.sold')?.textContent).toContain('Sold');
+    expect(tile.querySelector('.card-action')).toBeNull();
+    expect(element.querySelector('.subtitle')?.textContent).toContain('2 for sale · 1 sold');
+  });
+
   it('lists only the cards this user is selling', async () => {
     const element = await render();
     const names = Array.from(element.querySelectorAll('.name')).map((name) => name.textContent);
 
     expect(names).toEqual(['Sample Card 01', 'Sample Card 03', 'Sample Card 06']);
-    expect(element.querySelector('.subtitle')?.textContent).toContain('3 cards listed');
+    expect(element.querySelector('.subtitle')?.textContent).toContain('3 for sale · 0 sold');
   });
 
   it('has a button for adding a card', async () => {

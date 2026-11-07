@@ -7,6 +7,7 @@ import { CardService } from '../cards/card.service';
 import { OrderDetail } from '../order-detail/order-detail';
 import { Order, ORDER_STATUS_LABELS } from '../orders/order';
 import { OrderService } from '../orders/order.service';
+import { OrdersTabs } from '../orders-tabs/orders-tabs';
 import { ReviewForm } from '../review-form/review-form';
 import { isReviewed, Review } from '../reviews/review';
 import { ReviewService } from '../reviews/review.service';
@@ -20,7 +21,7 @@ interface OrderRow {
 
 @Component({
   selector: 'app-my-orders',
-  imports: [CurrencyPipe, OrderDetail, ReviewForm, RouterLink, SiteHeader],
+  imports: [CurrencyPipe, OrderDetail, OrdersTabs, ReviewForm, RouterLink, SiteHeader],
   templateUrl: './my-orders.html',
   styleUrl: './my-orders.css'
 })
@@ -29,11 +30,9 @@ export class MyOrders {
   private readonly listings = toSignal(inject(CardService).getListings(), { initialValue: [] });
   private readonly reviews = toSignal(inject(ReviewService).getReviews(), { initialValue: [] });
 
-  // Newest first. Cards are never removed from the sample data, so every order has its card.
+  // Newest first, as the API sends them. An ordered card cannot be removed, so every order has its card.
   protected readonly rows = computed<OrderRow[]>(() =>
-    [...this.orders()]
-      .reverse()
-      .flatMap((order) => {
+    this.orders().flatMap((order) => {
         const card = this.listings().find((listing) => listing.cardId === order.cardId);
         const review = this.reviews().find((item) => item.orderId === order.orderId) ?? null;
         return card ? [{ order, card, review }] : [];

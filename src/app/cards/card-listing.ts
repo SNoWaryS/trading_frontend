@@ -14,6 +14,7 @@ export interface CardListing {
   cardElement: string | null;
   cardPicture: string | null; // the seller's photo, or the catalog picture when they did not add one
   cardDescription: string | null;
+  sold: boolean; // someone has ordered it, so it is no longer for sale
 }
 
 // What a seller enters when listing a card. The photo is uploaded with it; without one, the catalog picture is shown.

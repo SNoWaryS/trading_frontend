@@ -16,7 +16,9 @@ import { SiteHeader } from '../site-header/site-header';
 export class Home {
   private readonly cards = inject(CardService);
   private readonly router = inject(Router);
-  private readonly listings = toSignal(this.cards.getListings(), { initialValue: [] });
+  private readonly allListings = toSignal(this.cards.getListings(), { initialValue: [] });
+  // Sold cards stay in the data for orders and reviews, but are no longer for sale.
+  private readonly listings = computed(() => this.allListings().filter((card) => !card.sold));
 
   protected readonly search = signal('');
   protected readonly selectedElement = signal<string | null>(null);

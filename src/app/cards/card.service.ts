@@ -70,6 +70,14 @@ export class CardService {
     );
   }
 
+  // After the user orders a card, so the pages stop offering it straight away.
+  markSold(cardId: number): void {
+    const listings = this.listings.value;
+    if (listings) {
+      this.listings.next(listings.map((card) => (card.cardId === cardId ? { ...card, sold: true } : card)));
+    }
+  }
+
   private load(): void {
     if (this.loading) {
       return;

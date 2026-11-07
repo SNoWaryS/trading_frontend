@@ -92,7 +92,9 @@
               }
             </div>
 
-            <button class="primary confirm" type="button" (click)="confirm()">Confirm order</button>
+            <button class="primary confirm" type="button" [disabled]="placing()" (click)="confirm()">
+              {{ placing() ? 'Placing order…' : 'Confirm order' }}
+            </button>
           }
         </section>
       </div>

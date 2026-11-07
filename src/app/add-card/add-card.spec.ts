@@ -109,6 +109,7 @@ describe('AddCard', () => {
       cardElement: card.cardElement,
       cardPicture: card.cardPicture,
       cardDescription: null,
+      sold: false,
       ...listing,
     };
   }

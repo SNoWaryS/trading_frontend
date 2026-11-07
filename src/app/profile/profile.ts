@@ -38,7 +38,7 @@ export class Profile {
     return user ? `${user.name.charAt(0)}${user.surname.charAt(0)}`.toUpperCase() : '';
   });
 
-  protected readonly cardsForSale = computed(() => this.listings().length);
+  protected readonly cardsForSale = computed(() => this.listings().filter((card) => !card.sold).length);
   protected readonly orderCount = computed(() => this.myOrders().length);
   protected readonly reviewCount = computed(() => {
     const myOrderIds = new Set(this.myOrders().map((order) => order.orderId));

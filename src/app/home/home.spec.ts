@@ -1,5 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter, Router } from '@angular/router';
+import { CardService } from '../cards/card.service';
 import { Home } from './home';
 import { signIn } from '../testing/session';
 import { provideSampleCards } from '../testing/sample-cards';
@@ -30,6 +31,14 @@ describe('Home', () => {
   it('lists the cards for sale with their prices', () => {
     expect(names().length).toBe(8);
     expect(element().querySelector('.price')?.textContent).toContain('1,250');
+  });
+
+  it('leaves out cards someone has already bought', async () => {
+    TestBed.inject(CardService).markSold(1);
+    await fixture.whenStable();
+
+    expect(names().length).toBe(7);
+    expect(names()).not.toContain('Sample Card 01');
   });
 
   it('links to the sell page', () => {

@@ -4,7 +4,7 @@
   <section class="intro">
     <div>
       <h1 class="title">My cards for sale</h1>
-      <p class="subtitle">{{ listings().length }} cards listed</p>
+      <p class="subtitle">{{ forSale() }} for sale · {{ listings().length - forSale() }} sold</p>
     </div>
     <button class="add" type="button" (click)="adding.set(true)">Add card</button>
   </section>
@@ -23,7 +23,12 @@
             <p class="meta">{{ cardMeta(card) }}</p>
             <h2 class="name">{{ card.cardName }}</h2>
 
-            @if (editingId() === card.cardId) {
+            @if (card.sold) {
+              <div class="prices">
+                <p class="price">{{ card.cardPrice | currency: 'THB' : 'symbol-narrow' : '1.0-0' }}</p>
+              </div>
+              <p class="sold">Sold. See it under Orders → Sales.</p>
+            } @else if (editingId() === card.cardId) {
               <form class="edit" [formGroup]="editForm" (ngSubmit)="save(card)" novalidate>
                 <label class="edit-label" [for]="'price-' + card.cardId">Your price (฿)</label>
                 <input class="edit-field" [id]="'price-' + card.cardId" type="number" min="1" step="1" formControlName="cardPrice" />

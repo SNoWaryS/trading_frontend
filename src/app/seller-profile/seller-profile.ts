@@ -29,7 +29,7 @@ export class SellerProfile {
   private readonly username = toSignal(this.username$, { initialValue: '' });
   private readonly allListings = toSignal(this.cards.getListings(), { initialValue: [] });
   protected readonly listings = computed(() =>
-    this.allListings().filter((card) => card.sellerName === this.username())
+    this.allListings().filter((card) => card.sellerName === this.username() && !card.sold)
   );
   protected readonly reviews = toSignal(
     this.username$.pipe(switchMap((username) => this.reviewService.getReviewsForSeller(username))),

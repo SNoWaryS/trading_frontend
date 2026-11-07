@@ -26,23 +26,26 @@ export class Checkout {
   );
   private readonly listings = toSignal(this.cards.getListings(), { initialValue: [] });
 
-  protected readonly card = computed(() => this.listings().find((card) => card.cardId === this.cardId()));
+  // A sold card can't be bought, except that it stays on screen for the buyer who just ordered it.
+  protected readonly card = computed(() => {
+    const card = this.listings().find((listing) => listing.cardId === this.cardId());
+    return card && (!card.sold || this.order()) ? card : undefined;
+  });
   protected readonly isOwn = computed(() => {
     const card = this.card();
     return card !== undefined && this.cards.isOwnListing(card);
   });
+  // A preview address for the attached slip; the file itself is uploaded with the order.
   protected readonly slip = signal<string | null>(null);
   protected readonly errorMessage = signal('');
   protected readonly order = signal<Order | null>(null);
+  protected readonly placing = signal(false);
+  private slipFile: File | null = null;
   protected readonly pictureAccept = PICTURE_ACCEPT;
   protected readonly cardMeta = cardMeta;
 
   constructor() {
-    inject(DestroyRef).onDestroy(() => {
-      if (!this.order()) {
-        this.releaseSlip();
-      }
-    });
+    inject(DestroyRef).onDestroy(() => this.releaseSlip());
   }
 
   protected chooseSlip(input: HTMLInputElement): void {
@@ -59,14 +62,15 @@ export class Checkout {
     }
 
     this.releaseSlip();
+    this.slipFile = file;
     this.slip.set(URL.createObjectURL(file));
     this.errorMessage.set('');
   }
 
   protected confirm(): void {
     const card = this.card();
-    const slip = this.slip();
-    if (!card || this.isOwn() || this.order()) {
+    const slip = this.slipFile;
+    if (!card || this.isOwn() || this.order() || this.placing()) {
       return;
     }
     if (!slip) {
@@ -74,7 +78,18 @@ export class Checkout {
       return;
     }
 
-    this.orders.placeOrder(card, slip).subscribe((order) => this.order.set(order));
+    this.placing.set(true);
+    this.errorMessage.set('');
+    this.orders.placeOrder(card, slip).subscribe({
+      next: (order) => {
+        this.placing.set(false);
+        this.order.set(order);
+      },
+      error: (error: Error) => {
+        this.placing.set(false);
+        this.errorMessage.set(error.message);
+      },
+    });
   }
 
   private releaseSlip(): void {
@@ -83,5 +98,6 @@ export class Checkout {
       URL.revokeObjectURL(slip);
       this.slip.set(null);
     }
+    this.slipFile = null;
   }
 }

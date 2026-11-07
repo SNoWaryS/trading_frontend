@@ -4,6 +4,7 @@ import { AuthService } from '../auth/auth.service';
 import { CatalogCard } from '../cards/card-catalog';
 import { CardListing, ListingChanges, NewCardListing } from '../cards/card-listing';
 import { CardService } from '../cards/card.service';
+import { provideSampleOrders } from './sample-orders';
 
 // For tests: listings held in memory instead of the listings API, with the same sample cards the database seed
 // (back/seed_sample_listings.sql) uses for card ids 1 to 8. The sample orders and reviews refer to these ids.
@@ -85,6 +86,8 @@ function toListing(catalog: CatalogCard, cardId: number, sellerName: string, car
     // The API stores an uploaded photo and answers with its address; here the address is made up from the name.
     cardPicture: card.photo ? `uploaded:${card.photo.name}` : catalog.cardPicture,
     cardDescription: card.cardDescription,
+    // Every sample card shows as for sale here, so tests see all of them.
+    sold: false,
   };
 }
 
@@ -133,6 +136,10 @@ export class SampleCardService implements Pick<CardService, keyof CardService> {
     return of(updated);
   }
 
+  markSold(cardId: number): void {
+    this.listings.next(this.listings.value.map((card) => (card.cardId === cardId ? { ...card, sold: true } : card)));
+  }
+
   removeListing(cardId: number): Observable<void> {
     const listing = this.listings.value.find((card) => card.cardId === cardId && this.isOwnListing(card));
     if (!listing) {
@@ -143,6 +150,7 @@ export class SampleCardService implements Pick<CardService, keyof CardService> {
   }
 }
 
+// Sample cards, orders and reviews in memory.
 export function provideSampleCards(): Provider[] {
-  return [{ provide: CardService, useClass: SampleCardService }];
+  return [{ provide: CardService, useClass: SampleCardService }, ...provideSampleOrders()];
 }

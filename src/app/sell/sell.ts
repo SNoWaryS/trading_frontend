@@ -1,5 +1,5 @@
 import { CurrencyPipe } from '@angular/common';
-import { Component, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { AddCard } from '../add-card/add-card';
@@ -25,6 +25,7 @@ export class Sell {
   private readonly cards = inject(CardService);
 
   protected readonly listings = toSignal(this.cards.getMyListings(), { initialValue: [] });
+  protected readonly forSale = computed(() => this.listings().filter((card) => !card.sold).length);
   protected readonly adding = signal(false);
   protected readonly cardMeta = cardMeta;
 

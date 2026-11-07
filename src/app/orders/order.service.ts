@@ -1,70 +1,77 @@
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
-import { BehaviorSubject, combineLatest, map, Observable, of, throwError } from 'rxjs';
-import { AuthService } from '../auth/auth.service';
+import { BehaviorSubject, catchError, filter, Observable, tap, throwError } from 'rxjs';
+import { API_URL } from '../api';
 import { CardListing } from '../cards/card-listing';
-import { Order } from './order';
+import { CardService } from '../cards/card.service';
+import { Order, Sale } from './order';
 
-// Orders 1 to 3 belong to the sample buyer seller1. Log in as seller1 to see them as your own.
-const SAMPLE_COLLECTOR = 'seller1';
+const ORDERS_URL = `${API_URL}/api/orders`;
 
-const SAMPLE_ORDERS: Order[] = [
-  { orderId: 1, cardId: 7, buyerName: SAMPLE_COLLECTOR, orderStatus: 'received', orderPrice: 12500, paymentSlip: null },
-  { orderId: 2, cardId: 4, buyerName: SAMPLE_COLLECTOR, orderStatus: 'shipped', orderPrice: 8900, paymentSlip: null },
-  { orderId: 3, cardId: 5, buyerName: SAMPLE_COLLECTOR, orderStatus: 'pending', orderPrice: 1590, paymentSlip: null },
-  // Other buyers' orders for the sample user's cards, so the profile has reviews from buyers.
-  // Note: these sample cards still show as for sale, because CARDS has no sold status yet.
-  { orderId: 4, cardId: 3, buyerName: 'buyer2', orderStatus: 'received', orderPrice: 320, paymentSlip: null },
-  { orderId: 5, cardId: 6, buyerName: 'buyer3', orderStatus: 'received', orderPrice: 680, paymentSlip: null },
-  // Another buyer's order from seller2, so other sellers' profiles have a review too.
-  { orderId: 6, cardId: 2, buyerName: 'buyer3', orderStatus: 'received', orderPrice: 2800, paymentSlip: null },
-];
+function apiError(fallback: string) {
+  return (error: HttpErrorResponse) =>
+    throwError(() => new Error(typeof error.error?.message === 'string' ? error.error.message : fallback));
+}
 
+// Orders through the orders API: the logged-in user's purchases, and the orders for cards they sell.
 @Injectable({ providedIn: 'root' })
 export class OrderService {
-  private readonly auth = inject(AuthService);
+  private readonly http = inject(HttpClient);
+  private readonly cards = inject(CardService);
+  private readonly mine = new BehaviorSubject<Order[] | null>(null);
+  private readonly sales = new BehaviorSubject<Sale[] | null>(null);
 
-  // Orders held in memory for now. Replace these methods with HttpClient calls once the API exists.
-  private readonly orders = new BehaviorSubject<Order[]>(SAMPLE_ORDERS);
-
-  getOrders(): Observable<Order[]> {
-    return this.orders.asObservable();
+  // The logged-in user's orders, newest first. Asks the API again each time, showing what is loaded meanwhile.
+  getMyOrders(): Observable<Order[]> {
+    this.reload(`${ORDERS_URL}/mine`, this.mine);
+    return this.mine.pipe(filter((orders): orders is Order[] => orders !== null));
   }
 
-  // The logged-in user's orders.
-  getMyOrders(): Observable<Order[]> {
-    return combineLatest([this.orders, this.auth.user$]).pipe(
-      map(([orders, user]) => orders.filter((order) => order.buyerName === user?.username))
+  // Orders for the logged-in user's cards, newest first, with the buyer's address for shipping.
+  getSales(): Observable<Sale[]> {
+    this.reload(`${ORDERS_URL}/sales`, this.sales);
+    return this.sales.pipe(filter((sales): sales is Sale[] => sales !== null));
+  }
+
+  // The API takes the card's current price and checks nobody bought it first.
+  placeOrder(card: CardListing, slip: File): Observable<Order> {
+    const form = new FormData();
+    form.set('cardId', String(card.cardId));
+    form.set('slip', slip);
+    return this.http.post<Order>(ORDERS_URL, form).pipe(
+      tap((order) => {
+        this.mine.next([order, ...(this.mine.value ?? [])]);
+        this.cards.markSold(card.cardId);
+      }),
+      catchError(apiError('Cannot place this order right now. Please try again.'))
     );
   }
 
-  placeOrder(card: CardListing, paymentSlip: string): Observable<Order> {
-    const buyerName = this.auth.username();
-    if (!buyerName) {
-      return throwError(() => new Error('Please log in to buy a card'));
-    }
-
-    const current = this.orders.value;
-    const order: Order = {
-      orderId: Math.max(0, ...current.map((existing) => existing.orderId)) + 1,
-      cardId: card.cardId,
-      buyerName,
-      orderStatus: 'pending',
-      orderPrice: card.cardPrice,
-      paymentSlip,
-    };
-    this.orders.next([...current, order]);
-    return of(order);
+  // The seller checked the payment and sent the card.
+  shipOrder(orderId: number): Observable<Order> {
+    return this.http.post<Order>(`${ORDERS_URL}/${orderId}/ship`, null).pipe(
+      tap((order) =>
+        this.sales.next(
+          (this.sales.value ?? []).map((sale) => (sale.orderId === orderId ? { ...sale, orderStatus: order.orderStatus } : sale))
+        )
+      ),
+      catchError(apiError('Cannot update this order right now. Please try again.'))
+    );
   }
 
   // Only a shipped order can be marked as received.
   confirmReceipt(orderId: number): Observable<Order> {
-    const order = this.orders.value.find((existing) => existing.orderId === orderId);
-    if (!order || order.orderStatus !== 'shipped') {
-      return throwError(() => new Error('This order cannot be marked as received'));
-    }
+    return this.http.post<Order>(`${ORDERS_URL}/${orderId}/receive`, null).pipe(
+      tap((order) => this.mine.next((this.mine.value ?? []).map((item) => (item.orderId === orderId ? order : item)))),
+      catchError(apiError('This order cannot be marked as received yet.'))
+    );
+  }
 
-    const received: Order = { ...order, orderStatus: 'received' };
-    this.orders.next(this.orders.value.map((existing) => (existing.orderId === orderId ? received : existing)));
-    return of(received);
+  private reload<T>(url: string, store: BehaviorSubject<T[] | null>): void {
+    this.http.get<T[]>(url).subscribe({
+      next: (items) => store.next(items),
+      // Keep what is already shown; with nothing loaded yet, show none.
+      error: () => store.next(store.value ?? []),
+    });
   }
 }

@@ -1,0 +1,68 @@
+<app-site-header />
+
+<main class="page">
+  <section class="intro">
+    <h1 class="title">Sales</h1>
+    <p class="subtitle">{{ rows().length }} orders for your cards · {{ toShip() }} waiting for you to ship</p>
+    <app-orders-tabs />
+  </section>
+
+  @if (rows().length) {
+    <ul class="list">
+      @for (row of rows(); track row.sale.orderId) {
+        <li class="row">
+          <div class="picture">
+            @if (row.card.cardPicture) {
+              <img [src]="row.card.cardPicture" [alt]="row.card.cardName" loading="lazy" />
+            }
+          </div>
+
+          <div class="card">
+            <p class="meta">Order #{{ row.sale.orderId }} · {{ cardMeta(row.card) }}</p>
+            <h2 class="name">{{ row.card.cardName }}</h2>
+            <p class="muted">Bought by {{ row.sale.buyerName }}</p>
+            <p class="price">{{ row.sale.orderPrice | currency: 'THB' : 'symbol-narrow' : '1.0-0' }}</p>
+          </div>
+
+          <div class="ship-to">
+            <p class="label">Send to</p>
+            <p class="buyer">{{ row.sale.buyer.name }} {{ row.sale.buyer.surname }}</p>
+            <p class="address">{{ row.sale.buyer.address ?? 'No address given. Contact the buyer.' }}</p>
+            <p class="muted">{{ row.sale.buyer.phoneNumber ?? row.sale.buyer.email }}</p>
+          </div>
+
+          <div class="slip">
+            <p class="label">Payment</p>
+            @if (row.sale.paymentSlip; as slip) {
+              <a class="slip-link" [href]="slip" target="_blank" rel="noopener">View payment slip</a>
+            } @else {
+              <p class="muted">No slip attached</p>
+            }
+          </div>
+
+          <div class="action">
+            <span [class]="'status ' + row.sale.orderStatus">{{ statusLabels[row.sale.orderStatus] }}</span>
+            @switch (row.sale.orderStatus) {
+              @case ('pending') {
+                <button class="ship" type="button" [disabled]="busyId() === row.sale.orderId" (click)="ship(row)">
+                  {{ busyId() === row.sale.orderId ? 'Saving…' : 'Mark as shipped' }}
+                </button>
+              }
+              @case ('shipped') {
+                <p class="muted">Waiting for the buyer to confirm receipt</p>
+              }
+              @case ('received') {
+                <p class="muted">The buyer received the card</p>
+              }
+            }
+            @if (error()?.orderId === row.sale.orderId) {
+              <p class="error" role="alert">{{ error()?.message }}</p>
+            }
+          </div>
+        </li>
+      }
+    </ul>
+  } @else {
+    <p class="empty">Nobody has ordered your cards yet.</p>
+  }
+</main>

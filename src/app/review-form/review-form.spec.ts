@@ -19,6 +19,7 @@ const card: CardListing = {
   cardElement: null,
   cardPicture: null,
   cardDescription: null,
+  sold: false,
 };
 
 const receivedOrder: Order = {

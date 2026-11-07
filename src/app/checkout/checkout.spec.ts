@@ -2,10 +2,13 @@ import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { RouterTestingHarness } from '@angular/router/testing';
 import { Order } from '../orders/order';
+import { throwError } from 'rxjs';
+import { CardService } from '../cards/card.service';
 import { OrderService } from '../orders/order.service';
 import { Checkout } from './checkout';
 import { signIn } from '../testing/session';
 import { provideSampleCards } from '../testing/sample-cards';
+import { SampleOrderService } from '../testing/sample-orders';
 
 describe('Checkout', () => {
   let harness: RouterTestingHarness;
@@ -31,7 +34,7 @@ describe('Checkout', () => {
 
   function placedOrders() {
     let orders: Order[] = [];
-    TestBed.inject(OrderService)
+    TestBed.inject(SampleOrderService)
       .getOrders()
       .subscribe((value) => (orders = value));
     return orders;
@@ -87,7 +90,7 @@ describe('Checkout', () => {
       buyerName: 'seller1',
       orderStatus: 'pending',
       orderPrice: 2800,
-      paymentSlip: 'blob:slip',
+      paymentSlip: 'uploaded:slip',
     });
     expect(element().textContent).toContain('Order placed');
     expect(element().textContent).toContain('Waiting for payment check');
@@ -100,6 +103,26 @@ describe('Checkout', () => {
     expect(element().textContent).toContain('your own listing');
     expect(element().querySelector('input[type=file]')).toBeNull();
     expect(element().querySelector('.confirm')).toBeNull();
+  });
+
+  it('does not sell a card someone has already bought', async () => {
+    TestBed.inject(CardService).markSold(2);
+    await open(2);
+
+    expect(element().textContent).toContain('Card not available');
+    expect(element().querySelector('.confirm')).toBeNull();
+  });
+
+  it("shows the API's message when the order fails", async () => {
+    vi.spyOn(TestBed.inject(OrderService), 'placeOrder').mockReturnValue(
+      throwError(() => new Error('Sorry, someone has already bought this card'))
+    );
+    await open(2);
+    await attach();
+    await confirm();
+
+    expect(alert()).toContain('someone has already bought this card');
+    expect(element().querySelector<HTMLButtonElement>('.confirm')!.disabled).toBe(false);
   });
 
   it('explains when the card does not exist', async () => {

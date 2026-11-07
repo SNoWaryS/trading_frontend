@@ -7,6 +7,7 @@ import { MyOrders } from './my-orders/my-orders';
 import { Profile } from './profile/profile';
 import { Register } from './register/register';
 import { SellerProfile } from './seller-profile/seller-profile';
+import { Sales } from './sales/sales';
 import { Sell } from './sell/sell';
 
 export const routes: Routes = [
@@ -21,6 +22,7 @@ export const routes: Routes = [
       { path: 'sell', component: Sell },
       { path: 'checkout/:cardId', component: Checkout },
       { path: 'orders', component: MyOrders },
+      { path: 'orders/sales', component: Sales },
       { path: 'profile', component: Profile },
       { path: 'sellers/:username', component: SellerProfile },
     ],

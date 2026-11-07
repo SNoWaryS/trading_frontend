@@ -23,6 +23,7 @@ function listing(cardId: number, sellerName: string, cardPrice = 100): CardListi
     cardElement: 'น้ำ',
     cardPicture: null,
     cardDescription: null,
+    sold: false,
   };
 }
 

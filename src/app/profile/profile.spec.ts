@@ -8,6 +8,7 @@ import { UserService } from '../users/user.service';
 import { Profile } from './profile';
 import { signIn } from '../testing/session';
 import { provideSampleCards } from '../testing/sample-cards';
+import { SampleOrderService } from '../testing/sample-orders';
 
 describe('Profile', () => {
   let fixture: ComponentFixture<Profile>;
@@ -61,7 +62,7 @@ describe('Profile', () => {
   it('counts a review once the user writes one', async () => {
     await render();
 
-    TestBed.inject(OrderService)
+    TestBed.inject(SampleOrderService)
       .getMyOrders()
       .subscribe((orders) => {
         const received = orders.find((order) => order.orderStatus === 'received')!;
@@ -216,7 +217,7 @@ describe('Profile', () => {
     it('leaves out reviews the user wrote as a buyer', async () => {
       await render();
 
-      TestBed.inject(OrderService)
+      TestBed.inject(SampleOrderService)
         .getMyOrders()
         .subscribe((orders) => {
           const received = orders.find((order) => order.orderStatus === 'received')!;
