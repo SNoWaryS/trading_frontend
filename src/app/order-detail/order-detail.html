@@ -35,6 +35,16 @@
         </div>
       </dl>
 
+      @if (seller(); as seller) {
+        <h3 class="heading">Contact the seller</h3>
+        <p class="contact">
+          <a class="contact-link" [href]="'mailto:' + seller.email">{{ seller.email }}</a>
+          @if (seller.phoneNumber; as phone) {
+            · <a class="contact-link" [href]="'tel:' + phone">{{ phone }}</a>
+          }
+        </p>
+      }
+
       <h3 class="heading">Description</h3>
       <p class="description">{{ card().cardDescription ?? 'No description provided.' }}</p>
 
@@ -47,7 +57,12 @@
         @switch (order().orderStatus) {
           @case ('pending') {
             <p class="note">You can confirm receipt once the seller has checked your payment and sent the card.</p>
-            <button class="primary" type="button" disabled>Confirm receipt</button>
+            <div class="choices">
+              <button class="secondary cancel" type="button" [disabled]="cancelling()" (click)="cancel()">
+                {{ cancelling() ? 'Cancelling…' : 'Cancel order' }}
+              </button>
+              <button class="primary" type="button" disabled>Confirm receipt</button>
+            </div>
           }
           @case ('shipped') {
             @if (asking()) {
@@ -60,6 +75,12 @@
               <p class="note">The seller has sent this card. Confirm once it arrives so you can review the order.</p>
               <button class="primary" type="button" (click)="asking.set(true)">Confirm receipt</button>
             }
+          }
+          @case ('cancelled') {
+            <p class="note cancelled" role="status">
+              This order was cancelled, and the card is back on sale. If you have already paid, contact the seller
+              about a refund.
+            </p>
           }
           @case ('received') {
             <p class="done" role="status">You confirmed that you received this card. You can now review the order.</p>

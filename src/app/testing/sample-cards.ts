@@ -141,6 +141,10 @@ export class SampleCardService implements Pick<CardService, keyof CardService> {
     this.listings.next(this.listings.value.map((card) => (card.cardId === cardId ? { ...card, sold: true } : card)));
   }
 
+  markAvailable(cardId: number): void {
+    this.listings.next(this.listings.value.map((card) => (card.cardId === cardId ? { ...card, sold: false } : card)));
+  }
+
   removeListing(cardId: number): Observable<void> {
     const listing = this.listings.value.find((card) => card.cardId === cardId && this.isOwnListing(card));
     if (!listing) {

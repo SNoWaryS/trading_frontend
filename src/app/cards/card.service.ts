@@ -78,6 +78,14 @@ export class CardService {
     }
   }
 
+  // A cancelled order puts its card back on sale.
+  markAvailable(cardId: number): void {
+    const listings = this.listings.value;
+    if (listings) {
+      this.listings.next(listings.map((card) => (card.cardId === cardId ? { ...card, sold: false } : card)));
+    }
+  }
+
   private load(): void {
     if (this.loading) {
       return;

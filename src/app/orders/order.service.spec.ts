@@ -95,6 +95,29 @@ describe('OrderService', () => {
     http.expectOne(`${ORDERS}/2/receive`).flush(order(2, 'received'));
     expect((await received).orderStatus).toBe('received');
   });
+
+  it('cancels an order and puts its card back on sale', async () => {
+    let listings: CardListing[] = [];
+    TestBed.inject(CardService).getListings().subscribe((value) => (listings = value));
+    http.expectOne(`${API_URL}/api/listings`).flush([{ ...card, sold: true }]);
+
+    const cancelled = firstValueFrom(service.cancelOrder(4));
+    const request = http.expectOne(`${ORDERS}/4/cancel`);
+    expect(request.request.method).toBe('POST');
+    request.flush(order(4, 'cancelled'));
+
+    expect((await cancelled).orderStatus).toBe('cancelled');
+    expect(listings[0].sold).toBe(false);
+  });
+
+  it("passes on the API's message when the order cannot be cancelled", async () => {
+    const cancelled = firstValueFrom(service.cancelOrder(4));
+    http
+      .expectOne(`${ORDERS}/4/cancel`)
+      .flush({ message: 'Only an order that has not been shipped yet can be cancelled' }, { status: 409, statusText: 'Conflict' });
+
+    await expect(cancelled).rejects.toThrow('not been shipped yet');
+  });
 });
 
 describe('ReviewService', () => {

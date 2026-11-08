@@ -134,6 +134,44 @@ describe('MyOrders', () => {
     expect(row(2).querySelector('.status')?.textContent).toContain('Shipped');
   });
 
+  it("shows the seller's contact details in the order details", async () => {
+    await render();
+    await openDetail(2);
+
+    const links = Array.from(dialog()!.querySelectorAll('.contact-link')).map((link) => link.getAttribute('href'));
+    expect(links).toEqual(['mailto:seller4@test.local']);
+  });
+
+  it('cancels a pending order after the buyer confirms', async () => {
+    await render();
+    await openDetail(3);
+    vi.spyOn(window, 'confirm').mockReturnValue(true);
+
+    await click('.secondary', 'Cancel order');
+
+    expect(window.confirm).toHaveBeenCalledWith(expect.stringContaining('Cancel your order for Sample Card 05?'));
+    expect(row(3).querySelector('.status')?.textContent).toContain('Cancelled');
+    expect(dialog()?.textContent).toContain('This order was cancelled');
+    expect(dialog()?.querySelector('.cancel')).toBeNull();
+  });
+
+  it('keeps the order when the buyer does not confirm cancelling', async () => {
+    await render();
+    await openDetail(3);
+    vi.spyOn(window, 'confirm').mockReturnValue(false);
+
+    await click('.secondary', 'Cancel order');
+
+    expect(row(3).querySelector('.status')?.textContent).toContain('Waiting for payment check');
+  });
+
+  it('only offers to cancel an order that has not been shipped', async () => {
+    await render();
+    await openDetail(2);
+
+    expect(dialog()?.querySelector('.cancel')).toBeNull();
+  });
+
   it('does not allow confirming receipt before the seller has sent the card', async () => {
     await render();
     await openDetail(3);

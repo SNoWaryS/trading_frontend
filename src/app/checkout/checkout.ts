@@ -1,14 +1,15 @@
 import { CurrencyPipe } from '@angular/common';
 import { Component, computed, DestroyRef, inject, signal } from '@angular/core';
-import { toSignal } from '@angular/core/rxjs-interop';
+import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, RouterLink } from '@angular/router';
-import { map } from 'rxjs';
+import { distinctUntilChanged, map, of, switchMap } from 'rxjs';
 import { cardMeta } from '../cards/card-listing';
 import { CardService } from '../cards/card.service';
 import { Order } from '../orders/order';
 import { OrderService } from '../orders/order.service';
 import { PICTURE_ACCEPT, pictureFileError } from '../shared/picture-file';
 import { SiteHeader } from '../site-header/site-header';
+import { UserService } from '../users/user.service';
 
 @Component({
   selector: 'app-checkout',
@@ -35,6 +36,14 @@ export class Checkout {
     const card = this.card();
     return card !== undefined && this.cards.isOwnListing(card);
   });
+  // How the buyer reaches the seller to ask how to pay. undefined while loading or if the seller is gone.
+  private readonly users = inject(UserService);
+  protected readonly seller = toSignal(
+    toObservable(computed(() => this.card()?.sellerName ?? null)).pipe(
+      distinctUntilChanged(),
+      switchMap((name) => (name ? this.users.getPublicProfile(name) : of(undefined)))
+    )
+  );
   // A preview address for the attached slip; the file itself is uploaded with the order.
   protected readonly slip = signal<string | null>(null);
   protected readonly errorMessage = signal('');

@@ -67,6 +67,21 @@ export class OrderService {
     );
   }
 
+  // The buyer or the seller calls off a pending order. The card goes back on sale.
+  cancelOrder(orderId: number): Observable<Order> {
+    return this.http.post<Order>(`${ORDERS_URL}/${orderId}/cancel`, null).pipe(
+      tap((order) => {
+        this.mine.next(this.mine.value?.map((item) => (item.orderId === orderId ? order : item)) ?? null);
+        this.sales.next(
+          this.sales.value?.map((sale) => (sale.orderId === orderId ? { ...sale, orderStatus: order.orderStatus } : sale)) ??
+            null
+        );
+        this.cards.markAvailable(order.cardId);
+      }),
+      catchError(apiError('Cannot cancel this order right now. Please try again.'))
+    );
+  }
+
   private reload<T>(url: string, store: BehaviorSubject<T[] | null>): void {
     this.http.get<T[]>(url).subscribe({
       next: (items) => store.next(items),

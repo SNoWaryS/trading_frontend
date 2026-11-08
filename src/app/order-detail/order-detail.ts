@@ -1,9 +1,12 @@
 import { CurrencyPipe } from '@angular/common';
 import { afterNextRender, Component, ElementRef, inject, input, output, signal, viewChild } from '@angular/core';
+import { toObservable, toSignal } from '@angular/core/rxjs-interop';
+import { distinctUntilChanged, map, switchMap } from 'rxjs';
 import { CardListing, cardMeta } from '../cards/card-listing';
 import { Order, ORDER_STATUS_LABELS } from '../orders/order';
 import { OrderService } from '../orders/order.service';
 import { isReviewed, Review } from '../reviews/review';
+import { UserService } from '../users/user.service';
 
 @Component({
   selector: 'app-order-detail',
@@ -20,7 +23,18 @@ export class OrderDetail {
   private readonly orders = inject(OrderService);
   private readonly dialog = viewChild.required<ElementRef<HTMLDialogElement>>('dialog');
 
+  private readonly users = inject(UserService);
+  // So the buyer can reach the seller, for example about a refund after a cancelled order.
+  protected readonly seller = toSignal(
+    toObservable(this.card).pipe(
+      map((card) => card.sellerName),
+      distinctUntilChanged(),
+      switchMap((name) => this.users.getPublicProfile(name))
+    )
+  );
+
   protected readonly asking = signal(false);
+  protected readonly cancelling = signal(false);
   protected readonly errorMessage = signal('');
   protected readonly statusLabels = ORDER_STATUS_LABELS;
   protected readonly isReviewed = isReviewed;
@@ -39,6 +53,21 @@ export class OrderDetail {
       error: () => {
         this.asking.set(false);
         this.errorMessage.set('This order cannot be marked as received yet.');
+      },
+    });
+  }
+
+  protected cancel(): void {
+    if (!confirm(`Cancel your order for ${this.card().cardName}? If you have already paid, contact the seller about a refund.`)) {
+      return;
+    }
+    this.cancelling.set(true);
+    this.errorMessage.set('');
+    this.orders.cancelOrder(this.order().orderId).subscribe({
+      next: () => this.cancelling.set(false),
+      error: (error: Error) => {
+        this.cancelling.set(false);
+        this.errorMessage.set(error.message);
       },
     });
   }

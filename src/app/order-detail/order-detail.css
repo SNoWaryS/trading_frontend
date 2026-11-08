@@ -136,6 +136,12 @@ dd {
   color: var(--ivory);
 }
 
+.status.cancelled {
+  background: transparent;
+  color: var(--text-muted);
+  box-shadow: inset 0 0 0 1px var(--line);
+}
+
 .heading {
   margin-top: 20px;
 }
@@ -229,4 +235,28 @@ dd {
 .secondary:focus-visible {
   outline: 2px solid var(--forest);
   outline-offset: 2px;
+}
+
+.contact {
+  margin: 6px 0 0;
+  font-size: 14px;
+  overflow-wrap: anywhere;
+}
+
+.contact-link {
+  color: var(--forest);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.cancel:disabled {
+  cursor: wait;
+  opacity: 0.6;
+}
+
+.note.cancelled {
+  padding: 14px 16px;
+  border-radius: 4px;
+  background: #f3efe3;
+  color: #6b5a2e;
 }

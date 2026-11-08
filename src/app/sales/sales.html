@@ -47,6 +47,12 @@
                 <button class="ship" type="button" [disabled]="busyId() === row.sale.orderId" (click)="ship(row)">
                   {{ busyId() === row.sale.orderId ? 'Saving…' : 'Mark as shipped' }}
                 </button>
+                <button class="cancel" type="button" [disabled]="busyId() === row.sale.orderId" (click)="cancel(row)">
+                  Cancel order
+                </button>
+              }
+              @case ('cancelled') {
+                <p class="muted">Order cancelled. The card is back on sale.</p>
               }
               @case ('shipped') {
                 <p class="muted">Waiting for the buyer to confirm receipt</p>

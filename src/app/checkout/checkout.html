@@ -68,10 +68,41 @@
           @if (isOwn()) {
             <p class="note">This is your own listing, so you can't buy it.</p>
           } @else {
-            <p class="note">
-              Transfer {{ card.cardPrice | currency: 'THB' : 'symbol-narrow' : '1.0-0' }} to the seller, then
-              attach your payment slip as proof of payment.
-            </p>
+            <div class="contact" aria-labelledby="contact-title">
+              <h3 class="contact-title" id="contact-title">1. Contact the seller</h3>
+              @if (seller(); as seller) {
+                <dl class="contact-list">
+                  <div>
+                    <dt>Seller</dt>
+                    <dd>{{ seller.name }} {{ seller.surname }} (&#64;{{ seller.username }})</dd>
+                  </div>
+                  <div>
+                    <dt>Email</dt>
+                    <dd><a class="contact-link" [href]="'mailto:' + seller.email">{{ seller.email }}</a></dd>
+                  </div>
+                  <div>
+                    <dt>Phone number</dt>
+                    <dd>
+                      @if (seller.phoneNumber; as phone) {
+                        <a class="contact-link" [href]="'tel:' + phone">{{ phone }}</a>
+                      } @else {
+                        <span class="missing">Not provided</span>
+                      }
+                    </dd>
+                  </div>
+                </dl>
+              } @else {
+                <p class="note">Loading the seller's contact details…</p>
+              }
+              <p class="note">
+                Ask the seller how to pay, then transfer
+                {{ card.cardPrice | currency: 'THB' : 'symbol-narrow' : '1.0-0' }}.
+                Trading does not hold your money, so check the
+                <a class="contact-link" [routerLink]="['/sellers', card.sellerName]">seller's reviews</a> first.
+              </p>
+            </div>
+
+            <h3 class="contact-title">2. Attach your payment slip</h3>
 
             <label class="upload">
               <input #slipInput class="upload-input" type="file" [accept]="pictureAccept" (change)="chooseSlip(slipInput)" />

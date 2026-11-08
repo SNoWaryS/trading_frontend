@@ -2,6 +2,7 @@ import { ApplicationRef } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { of } from 'rxjs';
+import { CardService } from '../cards/card.service';
 import { OrderService } from '../orders/order.service';
 import { provideSampleCards } from '../testing/sample-cards';
 import { SampleOrderService } from '../testing/sample-orders';
@@ -47,6 +48,35 @@ describe('Sales', () => {
     expect(window.confirm).toHaveBeenCalledWith('Have you checked the payment and sent Sample Card 03 to buyer2?');
     expect(rows()[0].querySelector('.status')?.textContent).toContain('Shipped');
     expect(rows()[0].querySelector('.ship')).toBeNull();
+  });
+
+  it('cancels a pending order after the seller confirms, putting the card back on sale', async () => {
+    await render();
+    TestBed.inject(SampleOrderService).setStatus(4, 'pending');
+    await stable();
+
+    vi.spyOn(window, 'confirm').mockReturnValue(true);
+    rows()[0].querySelector<HTMLButtonElement>('.cancel')!.click();
+    await stable();
+
+    expect(window.confirm).toHaveBeenCalledWith("Cancel buyer2's order for Sample Card 03? The card goes back on sale.");
+    expect(rows()[0].querySelector('.status')?.textContent).toContain('Cancelled');
+    expect(rows()[0].querySelector('.ship')).toBeNull();
+    expect(rows()[0].querySelector('.cancel')).toBeNull();
+    expect(rows()[0].textContent).toContain('The card is back on sale');
+
+    let sold: boolean | undefined;
+    TestBed.inject(CardService)
+      .getListings()
+      .subscribe((listings) => (sold = listings.find((card) => card.cardId === 3)?.sold))
+      .unsubscribe();
+    expect(sold).toBe(false);
+  });
+
+  it('does not offer to cancel an order that has been shipped or received', async () => {
+    await render();
+
+    expect(rows().some((row) => row.querySelector('.cancel'))).toBe(false);
   });
 
   it('says when nobody has ordered the cards yet', async () => {

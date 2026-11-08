@@ -112,11 +112,15 @@
   font-size: 14px;
 }
 
-.totals dt {
+.totals dt,
+.done-facts dt,
+.contact-list dt,
+.missing {
   color: var(--text-muted);
 }
 
-.totals dd {
+.totals dd,
+.contact-list dd {
   margin: 0;
 }
 
@@ -278,10 +282,6 @@
   font-size: 14px;
 }
 
-.done-facts dt {
-  color: var(--text-muted);
-}
-
 .done-facts dd {
   margin: 0;
   font-weight: 500;
@@ -293,3 +293,9 @@
   background: var(--green-200);
   font-size: 12px;
 }
+
+.contact { margin-bottom: 24px; padding-bottom: 20px; border-bottom: 1px solid var(--line); }
+.contact-title { margin: 0 0 12px; font-size: 14px; }
+.contact-list { display: grid; gap: 10px; margin: 0 0 14px; }
+.contact-list div { display: grid; grid-template-columns: 120px 1fr; gap: 12px; font-size: 14px; overflow-wrap: anywhere; }
+.contact-link { color: var(--forest); }

@@ -1,5 +1,5 @@
 import { inject, Injectable, Provider } from '@angular/core';
-import { BehaviorSubject, combineLatest, map, Observable, of, throwError } from 'rxjs';
+import { BehaviorSubject, combineLatest, map, Observable, of, tap, throwError } from 'rxjs';
 import { AuthService } from '../auth/auth.service';
 import { CardListing } from '../cards/card-listing';
 import { CardService } from '../cards/card.service';
@@ -86,6 +86,12 @@ export class SampleOrderService implements Pick<OrderService, keyof OrderService
   // Only a shipped order can be marked as received.
   confirmReceipt(orderId: number): Observable<Order> {
     return this.move(orderId, 'shipped', 'received', 'This order cannot be marked as received');
+  }
+
+  cancelOrder(orderId: number): Observable<Order> {
+    return this.move(orderId, 'pending', 'cancelled', 'Only an order that has not been shipped yet can be cancelled').pipe(
+      tap((order) => this.cards.markAvailable(order.cardId))
+    );
   }
 
   // For tests that need an order in a particular state.
