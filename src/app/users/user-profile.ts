@@ -15,3 +15,9 @@ export type PublicProfile = Pick<UserProfile, 'userId' | 'name' | 'surname' | 'u
 
 // The details a user may change themselves. The username stays fixed because other records point to it.
 export type ProfileChanges = Pick<UserProfile, 'name' | 'surname' | 'email' | 'phoneNumber' | 'address'>;
+
+// Same rule as the API: digits, with spaces, dashes or a leading + between them, and 9 to 15 digits in all.
+export function isValidPhoneNumber(phoneNumber: string): boolean {
+  const digits = phoneNumber.replace(/\D/g, '').length;
+  return /^\+?[0-9][0-9 -]*[0-9]$/.test(phoneNumber) && digits >= 9 && digits <= 15 && phoneNumber.length <= 20;
+}

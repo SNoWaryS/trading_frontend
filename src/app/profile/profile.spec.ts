@@ -129,25 +129,30 @@ describe('Profile', () => {
       expect(element().querySelector<HTMLInputElement>('#profile-name')!.value).toBe('Sample');
       expect(element().querySelector<HTMLTextAreaElement>('#profile-address')!.value).toBe('123 Sample Road, Bangkok 10100');
 
-      await fill({ 'profile-name': ' มานี ', 'profile-phone': '0812345678', 'profile-address': '' });
+      await fill({ 'profile-name': ' มานี ', 'profile-phone': '081-234-5678', 'profile-address': ' 99 ถนนทดสอบ ' });
       await save();
 
       expect(element().querySelector('app-edit-profile')).toBeNull();
       expect(element().querySelector('h1')?.textContent).toContain('มานี Collector');
-      expect(value('Phone number')).toBe('0812345678');
-      expect(value('Address')).toBe('Not provided');
+      expect(value('Phone number')).toBe('081-234-5678');
+      expect(value('Address')).toBe('99 ถนนทดสอบ');
       expect(value('Username')).toBe('seller1');
     });
 
+    // The sample user has no phone number yet, so each case fills in a valid one first.
     it.each([
-      [{ 'profile-surname': '  ' }, 'name, surname and email'],
+      [{ 'profile-surname': '  ' }, 'fill in every field'],
+      [{ 'profile-address': '  ' }, 'fill in every field'],
+      [{ 'profile-phone': '' }, 'fill in every field'],
+      [{ 'profile-phone': '12345' }, 'valid phone number'],
+      [{ 'profile-phone': 'call me' }, 'valid phone number'],
       [{ 'profile-email': 'not-an-email' }, 'valid email'],
     ])('rejects %j and keeps the old details', async (values, message) => {
       await render();
       button('Edit profile').click();
       await fixture.whenStable();
 
-      await fill(values);
+      await fill({ 'profile-phone': '081-234-5678', ...values });
       await save();
 
       expect(element().querySelector('app-edit-profile [role=alert]')?.textContent).toContain(message);
@@ -160,7 +165,7 @@ describe('Profile', () => {
       button('Edit profile').click();
       await fixture.whenStable();
 
-      await fill({ 'profile-email': 'seller2@test.local' });
+      await fill({ 'profile-phone': '081-234-5678', 'profile-email': 'seller2@test.local' });
       await save();
 
       expect(element().querySelector('app-edit-profile [role=alert]')?.textContent).toContain('already used');

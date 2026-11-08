@@ -1,6 +1,6 @@
 import { afterNextRender, Component, ElementRef, inject, input, OnInit, output, signal, viewChild } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
-import { UserProfile } from '../users/user-profile';
+import { isValidPhoneNumber, UserProfile } from '../users/user-profile';
 import { UserService } from '../users/user.service';
 
 // Same limits as the USERS table and the register API.
@@ -53,10 +53,10 @@ export class EditProfile implements OnInit {
     const address = values.address.trim();
 
     const error =
-      !name || !surname || !email ? 'Please fill in your name, surname and email'
+      !name || !surname || !email || !phoneNumber || !address ? 'Please fill in every field'
       : name.length > 100 || surname.length > 100 ? 'Name and surname must be 100 characters or fewer'
       : email.length > 255 || !EMAIL.test(email) ? 'Please enter a valid email'
-      : phoneNumber.length > 20 ? 'Phone number must be 20 characters or fewer'
+      : !isValidPhoneNumber(phoneNumber) ? 'Please enter a valid phone number, e.g. 081-234-5678'
       : address.length > 500 ? 'Address must be 500 characters or fewer'
       : null;
     if (error) {
@@ -67,7 +67,7 @@ export class EditProfile implements OnInit {
     this.errorMessage.set('');
     this.saving.set(true);
     this.users
-      .updateProfile({ name, surname, email, phoneNumber: phoneNumber || null, address: address || null })
+      .updateProfile({ name, surname, email, phoneNumber, address })
       .subscribe({
         next: () => this.close(),
         error: (error: Error) => {

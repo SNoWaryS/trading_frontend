@@ -29,6 +29,7 @@ describe('Register', () => {
     email: 'alice@test.local',
     password: 'password123',
     confirmPassword: 'password123',
+    phoneNumber: '081-234-5678',
     address: '1 Test Road',
   };
 
@@ -44,6 +45,22 @@ describe('Register', () => {
   });
 
   afterEach(() => http.verify());
+
+  it.each([
+    [{ phoneNumber: '' }, 'fill in all required fields'],
+    [{ address: '   ' }, 'fill in all required fields'],
+    [{ phoneNumber: '1234' }, 'valid phone number'],
+    [{ phoneNumber: 'not a number' }, 'valid phone number'],
+  ])('rejects %j without calling the API', async (values, message) => {
+    await submit({ ...validAccount, ...values });
+
+    http.expectNone(URL);
+    expect(element().querySelector('[role=alert]')?.textContent).toContain(message);
+  });
+
+  it('marks phone number and address as required, not optional', () => {
+    expect(element().textContent).not.toContain('optional');
+  });
 
   it('rejects passwords that do not match without calling the API', async () => {
     await submit({ ...validAccount, confirmPassword: 'different123' });
@@ -64,7 +81,7 @@ describe('Register', () => {
       username: 'alice',
       email: 'alice@test.local',
       password: 'password123',
-      phoneNumber: '',
+      phoneNumber: '081-234-5678',
       address: '1 Test Road',
     });
 

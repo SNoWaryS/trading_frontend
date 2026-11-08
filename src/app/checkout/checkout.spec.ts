@@ -66,7 +66,8 @@ describe('Checkout', () => {
     expect(contact.textContent).toContain('Sample Seller 2 (@seller2)');
     const links = Array.from(contact.querySelectorAll('.contact-link')).map((link) => link.getAttribute('href'));
     expect(links).toEqual(['mailto:seller2@test.local', 'tel:000-000-0002', '/sellers/seller2']);
-    expect(contact.textContent).toContain('does not hold your money');
+    expect(contact.textContent).toContain("Seller's reviews");
+    expect(contact.textContent).not.toContain('Ask the seller how to pay');
   });
 
   it('says when the seller has no phone number', async () => {

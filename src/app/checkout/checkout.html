@@ -94,12 +94,7 @@
               } @else {
                 <p class="note">Loading the seller's contact details…</p>
               }
-              <p class="note">
-                Ask the seller how to pay, then transfer
-                {{ card.cardPrice | currency: 'THB' : 'symbol-narrow' : '1.0-0' }}.
-                Trading does not hold your money, so check the
-                <a class="contact-link" [routerLink]="['/sellers', card.sellerName]">seller's reviews</a> first.
-              </p>
+              <a class="contact-link" [routerLink]="['/sellers', card.sellerName]">Seller's reviews</a>
             </div>
 
             <h3 class="contact-title">2. Attach your payment slip</h3>

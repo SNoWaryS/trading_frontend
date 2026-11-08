@@ -4,6 +4,7 @@ import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { Router, RouterLink } from '@angular/router';
 import { API_URL } from '../api';
 import { AuthShell } from '../auth-shell/auth-shell';
+import { isValidPhoneNumber } from '../users/user-profile';
 
 @Component({
   selector: 'app-register',
@@ -22,8 +23,8 @@ export class Register {
     email: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
     password: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
     confirmPassword: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
-    phoneNumber: new FormControl('', { nonNullable: true }),
-    address: new FormControl('', { nonNullable: true }),
+    phoneNumber: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
+    address: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
   });
   protected readonly submitting = signal(false);
   protected readonly errorMessage = signal('');
@@ -36,8 +37,13 @@ export class Register {
     this.errorMessage.set('');
     const { confirmPassword, ...account } = this.form.getRawValue();
 
-    if (this.form.invalid) {
+    // Phone number and address are required: buyers and sellers contact each other, and sellers ship to the address.
+    if (this.form.invalid || !account.phoneNumber.trim() || !account.address.trim()) {
       this.errorMessage.set('Please fill in all required fields');
+      return;
+    }
+    if (!isValidPhoneNumber(account.phoneNumber.trim())) {
+      this.errorMessage.set('Please enter a valid phone number, e.g. 081-234-5678');
       return;
     }
     if (account.password.length < 8) {
