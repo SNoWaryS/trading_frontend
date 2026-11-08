@@ -3,7 +3,7 @@ import { inject, Injectable } from '@angular/core';
 import { BehaviorSubject, catchError, combineLatest, filter, map, Observable, tap, throwError } from 'rxjs';
 import { API_URL } from '../api';
 import { AuthService } from '../auth/auth.service';
-import { CardListing, ListingChanges, NewCardListing } from './card-listing';
+import { CardListing, ListingChanges, NewCardListing, SimilarSearch } from './card-listing';
 
 const LISTINGS_URL = `${API_URL}/api/listings`;
 
@@ -37,6 +37,13 @@ export class CardService {
 
   isOwnListing(card: CardListing): boolean {
     return card.sellerName === this.auth.username();
+  }
+
+  // Other users' cards for sale most like what was searched for, most alike first, leaving out the cards whose
+  // name matches. The API compares cards as vectors (element, kind, stage, rarity and price) with cosine similarity.
+  getSimilar(search: string, element: string | null): Observable<SimilarSearch> {
+    const params: Record<string, string> = element ? { search, element } : { search };
+    return this.http.get<SimilarSearch>(`${LISTINGS_URL}/similar`, { params });
   }
 
   // Sends the listing as a form, so the photo can go with it. The API checks the card is in the catalog.

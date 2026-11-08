@@ -1,6 +1,9 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter, Router } from '@angular/router';
 import { CardService } from '../cards/card.service';
+import { of } from 'rxjs';
+import { CardListing } from '../cards/card-listing';
+import { SIMILAR_SEARCH_DELAY_MS } from '../similar-cards/similar-cards';
 import { Home } from './home';
 import { signIn } from '../testing/session';
 import { provideSampleCards } from '../testing/sample-cards';
@@ -135,6 +138,81 @@ describe('Home', () => {
     const link = dialog()!.querySelector('.seller-link')!;
     expect(link.textContent).toContain('View your profile');
     expect(link.getAttribute('href')).toBe('/profile');
+  });
+
+  describe('similar cards under the search', () => {
+    const section = () => element().querySelector('app-similar-cards .similar');
+    const tileNames = () =>
+      Array.from(element().querySelectorAll('app-similar-cards .tile .name')).map((name) => name.textContent);
+
+    async function type(text: string) {
+      const search = element().querySelector<HTMLInputElement>('.search')!;
+      search.value = text;
+      search.dispatchEvent(new Event('input'));
+      // The suggestions wait for the user to stop typing.
+      await new Promise((resolve) => setTimeout(resolve, SIMILAR_SEARCH_DELAY_MS + 50));
+      await fixture.whenStable();
+    }
+
+    it('shows nothing until the user searches', () => {
+      expect(section()).toBeNull();
+    });
+
+    it("suggests other users' cards like the search, without the cards that already match", async () => {
+      await type('Sample Card 02');
+
+      expect(section()?.querySelector('.title')?.textContent).toContain('Similar to “Sample Card 02”');
+      expect(tileNames().length).toBeGreaterThan(0);
+      expect(tileNames().length).toBeLessThanOrEqual(4);
+      expect(tileNames()).not.toContain('Sample Card 02');
+      // seller1 is logged in, so their own cards (01, 03, 06) are not suggested.
+      expect(tileNames().some((name) => ['Sample Card 01', 'Sample Card 03', 'Sample Card 06'].includes(name!))).toBe(false);
+      expect(section()?.querySelector('.match')?.textContent).toMatch(/\d+% match/);
+    });
+
+    it('opens a suggested card in the card details', async () => {
+      await type('Sample Card 02');
+      const first = element().querySelector<HTMLButtonElement>('app-similar-cards .tile')!;
+      const name = first.querySelector('.name')!.textContent;
+
+      first.click();
+      await fixture.whenStable();
+
+      expect(dialog()?.querySelector('.name')?.textContent).toBe(name);
+    });
+
+    it('sends the chosen element with the search', async () => {
+      const getSimilar = vi.spyOn(TestBed.inject(CardService), 'getSimilar');
+      Array.from(element().querySelectorAll<HTMLButtonElement>('.chip'))
+        .find((button) => button.textContent === 'Water')!
+        .click();
+      await type('Sample');
+
+      expect(getSimilar).toHaveBeenLastCalledWith('Sample', 'Water');
+    });
+
+    it('says when nobody is selling the card searched for', async () => {
+      let card!: CardListing;
+      TestBed.inject(CardService)
+        .getListings()
+        .subscribe((listings) => (card = listings[0]))
+        .unsubscribe();
+      vi.spyOn(TestBed.inject(CardService), 'getSimilar').mockReturnValue(
+        of({ basedOn: 'catalog', matches: 12, cards: [{ card, similarity: 0.78 }] })
+      );
+      await type('ลิซาร์ดอน');
+
+      expect(element().textContent).toContain('No cards match your search');
+      expect(section()?.querySelector('.title')?.textContent).toContain('Nobody is selling “ลิซาร์ดอน” right now');
+      expect(section()?.querySelector('.match')?.textContent).toContain('78% match');
+    });
+
+    it('no longer shows similar cards in the card details', async () => {
+      element().querySelector<HTMLElement>('.listing')!.click();
+      await fixture.whenStable();
+
+      expect(dialog()?.querySelector('app-similar-cards')).toBeNull();
+    });
   });
 
   it('shows the user their own listings instead of a Buy button', async () => {

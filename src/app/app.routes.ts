@@ -1,15 +1,10 @@
 import { Routes } from '@angular/router';
 import { authGuard, guestGuard } from './auth/auth.guards';
-import { Checkout } from './checkout/checkout';
-import { Home } from './home/home';
 import { Login } from './login/login';
-import { MyOrders } from './my-orders/my-orders';
-import { Profile } from './profile/profile';
 import { Register } from './register/register';
-import { SellerProfile } from './seller-profile/seller-profile';
-import { Sales } from './sales/sales';
-import { Sell } from './sell/sell';
 
+// Login and register load with the app. The pages behind login load when first opened, so the first visit
+// downloads less.
 export const routes: Routes = [
   { path: '', redirectTo: 'login', pathMatch: 'full' },
   { path: 'login', component: Login, canActivate: [guestGuard] },
@@ -18,13 +13,13 @@ export const routes: Routes = [
     path: '',
     canActivateChild: [authGuard],
     children: [
-      { path: 'home', component: Home },
-      { path: 'sell', component: Sell },
-      { path: 'checkout/:cardId', component: Checkout },
-      { path: 'orders', component: MyOrders },
-      { path: 'orders/sales', component: Sales },
-      { path: 'profile', component: Profile },
-      { path: 'sellers/:username', component: SellerProfile },
+      { path: 'home', loadComponent: () => import('./home/home').then((m) => m.Home) },
+      { path: 'sell', loadComponent: () => import('./sell/sell').then((m) => m.Sell) },
+      { path: 'checkout/:cardId', loadComponent: () => import('./checkout/checkout').then((m) => m.Checkout) },
+      { path: 'orders', loadComponent: () => import('./my-orders/my-orders').then((m) => m.MyOrders) },
+      { path: 'orders/sales', loadComponent: () => import('./sales/sales').then((m) => m.Sales) },
+      { path: 'profile', loadComponent: () => import('./profile/profile').then((m) => m.Profile) },
+      { path: 'sellers/:username', loadComponent: () => import('./seller-profile/seller-profile').then((m) => m.SellerProfile) },
     ],
   },
   { path: '**', redirectTo: 'login' },

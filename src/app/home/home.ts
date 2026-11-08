@@ -5,11 +5,12 @@ import { Router, RouterLink } from '@angular/router';
 import { CardDetail } from '../card-detail/card-detail';
 import { CardListing, cardMeta } from '../cards/card-listing';
 import { CardService } from '../cards/card.service';
+import { SimilarCards } from '../similar-cards/similar-cards';
 import { SiteHeader } from '../site-header/site-header';
 
 @Component({
   selector: 'app-home',
-  imports: [CardDetail, CurrencyPipe, RouterLink, SiteHeader],
+  imports: [CardDetail, CurrencyPipe, RouterLink, SimilarCards, SiteHeader],
   templateUrl: './home.html',
   styleUrl: './home.css'
 })

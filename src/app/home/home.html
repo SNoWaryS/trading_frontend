@@ -63,6 +63,8 @@
   } @else {
     <p class="empty">No cards match your search.</p>
   }
+
+  <app-similar-cards [search]="search()" [element]="selectedElement()" (open)="selectedCard.set($event)" />
 </main>
 
 @if (selectedCard(); as card) {

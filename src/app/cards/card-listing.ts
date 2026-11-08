@@ -32,3 +32,17 @@ export function cardMeta(card: Pick<CardListing, 'rarity' | 'cardElement' | 'car
   // The catalog uses '-' for a card with no rarity.
   return [card.rarity, card.cardElement, card.cardStage].filter((part) => part && part !== '-').join(' · ');
 }
+
+// A card for sale and how alike it is to a search, from 0 to 1 (see back/trading_backend/CardVectors.cs).
+export interface SimilarCard {
+  card: CardListing;
+  similarity: number;
+}
+
+// Cards like a search on the Home page. basedOn says where the search vector came from: 'listings' (cards for sale
+// whose name matched), 'catalog' (none for sale, so catalog cards whose name matched) or 'none' (nothing matched).
+export interface SimilarSearch {
+  basedOn: 'listings' | 'catalog' | 'none';
+  matches: number;
+  cards: SimilarCard[];
+}

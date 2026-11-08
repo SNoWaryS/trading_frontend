@@ -112,4 +112,22 @@ describe('CardService', () => {
     await expect(removed).rejects.toThrow('Someone has ordered this card');
     expect(shown?.map((card) => card.cardId)).toEqual([2, 1]);
   });
+
+  it('asks for cards like a search, with the chosen element', async () => {
+    const result = { basedOn: 'listings', matches: 1, cards: [{ card: listing(1, 'seller2'), similarity: 0.83 }] };
+    const similar = firstValueFrom(service.getSimilar('เก็คโคกะ', 'น้ำ'));
+    const request = http.expectOne((req) => req.url === `${LISTINGS}/similar`);
+    expect(request.request.params.get('search')).toBe('เก็คโคกะ');
+    expect(request.request.params.get('element')).toBe('น้ำ');
+    request.flush(result);
+
+    expect(await similar).toEqual(result);
+  });
+
+  it('leaves the element out when none is chosen', () => {
+    service.getSimilar('ex', null).subscribe();
+    const request = http.expectOne((req) => req.url === `${LISTINGS}/similar`);
+    expect(request.request.params.has('element')).toBe(false);
+    request.flush({ basedOn: 'none', matches: 0, cards: [] });
+  });
 });

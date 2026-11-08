@@ -2,7 +2,7 @@ import { inject, Injectable, Provider } from '@angular/core';
 import { BehaviorSubject, combineLatest, map, Observable, of, throwError } from 'rxjs';
 import { AuthService } from '../auth/auth.service';
 import { CatalogCard } from '../cards/card-catalog';
-import { CardListing, ListingChanges, NewCardListing } from '../cards/card-listing';
+import { CardListing, ListingChanges, NewCardListing, SimilarCard, SimilarSearch } from '../cards/card-listing';
 import { CardService } from '../cards/card.service';
 import { provideSampleOrders } from './sample-orders';
 import { provideSampleUsers } from './sample-users';
@@ -109,6 +109,28 @@ export class SampleCardService implements Pick<CardService, keyof CardService> {
 
   isOwnListing(card: CardListing): boolean {
     return card.sellerName === this.auth.username();
+  }
+
+  // A stand-in for the API's vector similarity: like the first matching card's element counts most, then its stage.
+  // There is no catalog here, so a search that matches no card for sale gets no suggestions.
+  getSimilar(search: string, element: string | null): Observable<SimilarSearch> {
+    const term = search.trim().toLowerCase();
+    const forSale = this.listings.value.filter((card) => !card.sold && (!element || card.cardElement === element));
+    const named = (card: CardListing) => card.cardName.toLowerCase().includes(term);
+    const matching = term ? forSale.filter(named) : [];
+    const like = matching[0];
+    if (!like) {
+      return of({ basedOn: 'none', matches: 0, cards: [] });
+    }
+    const cards: SimilarCard[] = forSale
+      .filter((card) => !named(card) && !this.isOwnListing(card))
+      .map((card) => ({
+        card,
+        similarity: 0.4 + (card.cardElement === like.cardElement ? 0.4 : 0) + (card.cardStage === like.cardStage ? 0.2 : 0),
+      }))
+      .sort((a, b) => b.similarity - a.similarity)
+      .slice(0, 4);
+    return of({ basedOn: 'listings', matches: matching.length, cards });
   }
 
   // Only the sample catalog cards can be listed here.
