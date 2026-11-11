@@ -27,7 +27,6 @@ export class Checkout {
   );
   private readonly listings = toSignal(this.cards.getListings(), { initialValue: [] });
 
-  // A sold card can't be bought, except that it stays on screen for the buyer who just ordered it.
   protected readonly card = computed(() => {
     const card = this.listings().find((listing) => listing.cardId === this.cardId());
     return card && (!card.sold || this.order()) ? card : undefined;
@@ -36,7 +35,6 @@ export class Checkout {
     const card = this.card();
     return card !== undefined && this.cards.isOwnListing(card);
   });
-  // How the buyer reaches the seller to ask how to pay. undefined while loading or if the seller is gone.
   private readonly users = inject(UserService);
   protected readonly seller = toSignal(
     toObservable(computed(() => this.card()?.sellerName ?? null)).pipe(
@@ -44,7 +42,6 @@ export class Checkout {
       switchMap((name) => (name ? this.users.getPublicProfile(name) : of(undefined)))
     )
   );
-  // A preview address for the attached slip; the file itself is uploaded with the order.
   protected readonly slip = signal<string | null>(null);
   protected readonly errorMessage = signal('');
   protected readonly order = signal<Order | null>(null);

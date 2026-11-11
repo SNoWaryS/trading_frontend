@@ -5,17 +5,11 @@
 }
 
 .title {
-  margin: 0;
+  margin: 0 0 24px;
   font-family: var(--font-display);
   font-size: 28px;
   font-weight: 500;
   line-height: 1.2;
-}
-
-.hint {
-  margin: 6px 0 24px;
-  color: var(--text-muted);
-  font-size: 13px;
 }
 
 .list {
@@ -84,20 +78,10 @@
   white-space: nowrap;
 }
 
-.row {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  margin-top: 4px;
-}
-
 .price {
+  display: block;
+  margin-top: 4px;
   font-size: 15px;
   font-weight: 600;
 }
 
-.match {
-  color: var(--forest);
-  font-size: 12px;
-  font-weight: 600;
-}

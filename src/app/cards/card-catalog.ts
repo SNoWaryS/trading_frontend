@@ -1,4 +1,4 @@
-// Mirrors the CARD_CATALOG table: the cards that may be sold, with their reference price.
+
 export interface CatalogCard {
   catalogId: number;
   cardName: string;

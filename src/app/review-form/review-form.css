@@ -25,7 +25,6 @@
   background: var(--green-100);
 }
 
-/* The source image has a stray icon on its left edge, so the sides are cropped. */
 .picture img {
   display: block;
   width: 100%;

@@ -9,11 +9,10 @@ import { CardService } from '../cards/card.service';
 import { CATALOG_SEARCH_LIMIT, CatalogService } from '../cards/catalog.service';
 import { PICTURE_ACCEPT, pictureFileError } from '../shared/picture-file';
 
-const MAX_PRICE = 9_999_999_999; // Largest whole-baht value that fits DECIMAL(12,2).
+const MAX_PRICE = 9_999_999_999;
 const WHOLE_NUMBER = /^\d+$/;
-export const SEARCH_DELAY_MS = 250; // Waits for the seller to stop typing before asking the API.
+export const SEARCH_DELAY_MS = 250;
 
-// One answer from the catalog API.
 interface CatalogSearch {
   term: string;
   cards: CatalogCard[];
@@ -38,7 +37,6 @@ export class AddCard {
   protected readonly searchLimit = CATALOG_SEARCH_LIMIT;
 
   protected readonly search = signal('');
-  // The latest search answer; null while the first one is loading.
   protected readonly found = toSignal(
     toObservable(this.search).pipe(
       map((term) => term.trim()),
@@ -65,7 +63,6 @@ export class AddCard {
     ]),
     cardDescription: new FormControl('', { nonNullable: true }),
   });
-  // A preview address for the chosen photo; the file itself is uploaded when the card is listed.
   protected readonly photo = signal<string | null>(null);
   protected readonly errorMessage = signal('');
   protected readonly saving = signal(false);
@@ -139,7 +136,6 @@ export class AddCard {
     this.finish();
   }
 
-  // The listing shows the uploaded photo from the API, so the preview is no longer needed either way.
   protected finish(): void {
     this.releasePhoto();
     this.closed.emit();

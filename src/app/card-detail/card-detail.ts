@@ -27,7 +27,6 @@ export class CardDetail {
     this.closed.emit();
   }
 
-  // A click on the dialog element itself, not its content, is a click on the backdrop.
   protected closeOnBackdrop(event: MouseEvent): void {
     if (event.target === this.dialog().nativeElement) {
       this.close();

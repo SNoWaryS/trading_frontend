@@ -1,22 +1,17 @@
-import { CurrencyPipe, PercentPipe } from '@angular/common';
+import { CurrencyPipe } from '@angular/common';
 import { Component, computed, inject, input, output } from '@angular/core';
 import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { catchError, debounceTime, distinctUntilChanged, map, of, switchMap } from 'rxjs';
 import { CardListing, cardMeta, SimilarSearch } from '../cards/card-listing';
 import { CardService } from '../cards/card.service';
 
-// How long to wait after the last key before asking the API, so typing a name sends one request, not one per letter.
 export const SIMILAR_SEARCH_DELAY_MS = 300;
 
-// The API's answer, with the search it answers, so the heading does not change while the user is still typing.
 type Result = SimilarSearch & { term: string };
 
-// Under the Home page's search results: cards for sale most like what was searched for, found by vector similarity
-// on the API. When no card with that name is for sale, the API matches the catalog instead and says so.
-// Shows nothing for an empty search, when there are no suggestions, or when they cannot be loaded.
 @Component({
   selector: 'app-similar-cards',
-  imports: [CurrencyPipe, PercentPipe],
+  imports: [CurrencyPipe],
   templateUrl: './similar-cards.html',
   styleUrl: './similar-cards.css'
 })

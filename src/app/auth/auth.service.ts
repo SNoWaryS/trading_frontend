@@ -5,7 +5,6 @@ import { BehaviorSubject, catchError, finalize, firstValueFrom, map, Observable,
 import { API_URL } from '../api';
 import { UserProfile } from '../users/user-profile';
 
-// The logged-in user. The session itself is an HttpOnly cookie the API sets, so this only mirrors it.
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private readonly http = inject(HttpClient);
@@ -19,7 +18,6 @@ export class AuthService {
     return this.session.value?.username ?? null;
   }
 
-  // Asks the API who is logged in, once per page load. Any failure counts as logged out.
   restore(): Promise<UserProfile | null> {
     if (this.session.value) {
       return Promise.resolve(this.session.value);
@@ -39,7 +37,6 @@ export class AuthService {
       .pipe(tap((user) => this.setSession(user)));
   }
 
-  // Clears the session here even if the API cannot be reached.
   logout(): Observable<void> {
     return this.http.post<void>(`${API_URL}/api/auth/logout`, null).pipe(
       map(() => undefined),

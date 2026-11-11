@@ -1,4 +1,3 @@
-// Rules for pictures people attach, such as card photos and payment slips.
 export const PICTURE_ACCEPT = 'image/jpeg,image/png,image/webp';
 
 const PICTURE_TYPES = PICTURE_ACCEPT.split(',');

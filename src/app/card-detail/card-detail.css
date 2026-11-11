@@ -29,7 +29,6 @@
   background: linear-gradient(160deg, var(--green-100), var(--green-300));
 }
 
-/* The source image has a stray icon on its left edge, so the sides are cropped. */
 .picture img {
   display: block;
   width: 100%;

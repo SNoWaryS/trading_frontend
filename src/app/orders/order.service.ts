@@ -13,7 +13,6 @@ function apiError(fallback: string) {
     throwError(() => new Error(typeof error.error?.message === 'string' ? error.error.message : fallback));
 }
 
-// Orders through the orders API: the logged-in user's purchases, and the orders for cards they sell.
 @Injectable({ providedIn: 'root' })
 export class OrderService {
   private readonly http = inject(HttpClient);
@@ -21,19 +20,16 @@ export class OrderService {
   private readonly mine = new BehaviorSubject<Order[] | null>(null);
   private readonly sales = new BehaviorSubject<Sale[] | null>(null);
 
-  // The logged-in user's orders, newest first. Asks the API again each time, showing what is loaded meanwhile.
   getMyOrders(): Observable<Order[]> {
     this.reload(`${ORDERS_URL}/mine`, this.mine);
     return this.mine.pipe(filter((orders): orders is Order[] => orders !== null));
   }
 
-  // Orders for the logged-in user's cards, newest first, with the buyer's address for shipping.
   getSales(): Observable<Sale[]> {
     this.reload(`${ORDERS_URL}/sales`, this.sales);
     return this.sales.pipe(filter((sales): sales is Sale[] => sales !== null));
   }
 
-  // The API takes the card's current price and checks nobody bought it first.
   placeOrder(card: CardListing, slip: File): Observable<Order> {
     const form = new FormData();
     form.set('cardId', String(card.cardId));
@@ -47,7 +43,6 @@ export class OrderService {
     );
   }
 
-  // The seller checked the payment and sent the card.
   shipOrder(orderId: number): Observable<Order> {
     return this.http.post<Order>(`${ORDERS_URL}/${orderId}/ship`, null).pipe(
       tap((order) =>
@@ -59,7 +54,6 @@ export class OrderService {
     );
   }
 
-  // Only a shipped order can be marked as received.
   confirmReceipt(orderId: number): Observable<Order> {
     return this.http.post<Order>(`${ORDERS_URL}/${orderId}/receive`, null).pipe(
       tap((order) => this.mine.next((this.mine.value ?? []).map((item) => (item.orderId === orderId ? order : item)))),
@@ -67,7 +61,6 @@ export class OrderService {
     );
   }
 
-  // The buyer or the seller calls off a pending order. The card goes back on sale.
   cancelOrder(orderId: number): Observable<Order> {
     return this.http.post<Order>(`${ORDERS_URL}/${orderId}/cancel`, null).pipe(
       tap((order) => {
@@ -85,7 +78,6 @@ export class OrderService {
   private reload<T>(url: string, store: BehaviorSubject<T[] | null>): void {
     this.http.get<T[]>(url).subscribe({
       next: (items) => store.next(items),
-      // Keep what is already shown; with nothing loaded yet, show none.
       error: () => store.next(store.value ?? []),
     });
   }

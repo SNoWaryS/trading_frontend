@@ -3,7 +3,6 @@ import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { isValidPhoneNumber, UserProfile } from '../users/user-profile';
 import { UserService } from '../users/user.service';
 
-// Same limits as the USERS table and the register API.
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 @Component({

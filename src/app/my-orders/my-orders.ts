@@ -30,7 +30,6 @@ export class MyOrders {
   private readonly listings = toSignal(inject(CardService).getListings(), { initialValue: [] });
   private readonly reviews = toSignal(inject(ReviewService).getReviews(), { initialValue: [] });
 
-  // Newest first, as the API sends them. An ordered card cannot be removed, so every order has its card.
   protected readonly rows = computed<OrderRow[]>(() =>
     this.orders().flatMap((order) => {
         const card = this.listings().find((listing) => listing.cardId === order.cardId);

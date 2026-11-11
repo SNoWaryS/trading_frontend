@@ -3,8 +3,6 @@ import { authGuard, guestGuard } from './auth/auth.guards';
 import { Login } from './login/login';
 import { Register } from './register/register';
 
-// Login and register load with the app. The pages behind login load when first opened, so the first visit
-// downloads less.
 export const routes: Routes = [
   { path: '', redirectTo: 'login', pathMatch: 'full' },
   { path: 'login', component: Login, canActivate: [guestGuard] },

@@ -37,7 +37,6 @@ export class Register {
     this.errorMessage.set('');
     const { confirmPassword, ...account } = this.form.getRawValue();
 
-    // Phone number and address are required: buyers and sellers contact each other, and sellers ship to the address.
     if (this.form.invalid || !account.phoneNumber.trim() || !account.address.trim()) {
       this.errorMessage.set('Please fill in all required fields');
       return;

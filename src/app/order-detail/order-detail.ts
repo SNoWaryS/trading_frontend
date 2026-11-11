@@ -24,7 +24,6 @@ export class OrderDetail {
   private readonly dialog = viewChild.required<ElementRef<HTMLDialogElement>>('dialog');
 
   private readonly users = inject(UserService);
-  // So the buyer can reach the seller, for example about a refund after a cancelled order.
   protected readonly seller = toSignal(
     toObservable(this.card).pipe(
       map((card) => card.sellerName),
@@ -77,7 +76,6 @@ export class OrderDetail {
     this.closed.emit();
   }
 
-  // A click on the dialog element itself, not its content, is a click on the backdrop.
   protected closeOnBackdrop(event: MouseEvent): void {
     if (event.target === this.dialog().nativeElement) {
       this.close();

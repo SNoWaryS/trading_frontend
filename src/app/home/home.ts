@@ -18,7 +18,6 @@ export class Home {
   private readonly cards = inject(CardService);
   private readonly router = inject(Router);
   private readonly allListings = toSignal(this.cards.getListings(), { initialValue: [] });
-  // Sold cards stay in the data for orders and reviews, but are no longer for sale.
   private readonly listings = computed(() => this.allListings().filter((card) => !card.sold));
 
   protected readonly search = signal('');

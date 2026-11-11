@@ -37,7 +37,6 @@
   object-fit: contain;
 }
 
-/* The sample picture has a stray icon on its left edge, so the sides are cropped. */
 .preview.catalog {
   aspect-ratio: 423 / 653;
   object-fit: cover;

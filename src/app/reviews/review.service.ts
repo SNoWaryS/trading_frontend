@@ -11,13 +11,11 @@ export interface SellerReview {
   card: CardListing;
 }
 
-// Reviews through the reviews API. A buyer reviews an order once, after confirming they received the card.
 @Injectable({ providedIn: 'root' })
 export class ReviewService {
   private readonly http = inject(HttpClient);
   private readonly mine = new BehaviorSubject<Review[] | null>(null);
 
-  // Reviews the logged-in user wrote on their own orders.
   getReviews(): Observable<Review[]> {
     this.http.get<Review[]>(`${API_URL}/api/reviews/mine`).subscribe({
       next: (reviews) => this.mine.next(reviews),
@@ -26,7 +24,6 @@ export class ReviewService {
     return this.mine.pipe(filter((reviews): reviews is Review[] => reviews !== null));
   }
 
-  // Reviews buyers wrote on orders for this seller's cards, newest first.
   getReviewsForSeller(sellerName: string): Observable<SellerReview[]> {
     const params = new HttpParams().set('seller', sellerName);
     return this.http
@@ -34,7 +31,6 @@ export class ReviewService {
       .pipe(catchError(() => of<SellerReview[]>([])));
   }
 
-  // The API checks the order is the user's, has been received and has not been reviewed yet.
   addReview(order: Order, comment: string): Observable<Review> {
     return this.http.post<Review>(`${API_URL}/api/orders/${order.orderId}/review`, { comment }).pipe(
       tap((review) => this.mine.next([review, ...(this.mine.value ?? []).filter((item) => item.orderId !== order.orderId)])),

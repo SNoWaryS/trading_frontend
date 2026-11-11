@@ -1,7 +1,6 @@
 import { afterNextRender, Component, ElementRef, inject, output, signal, viewChild } from '@angular/core';
 import { UserService } from '../users/user.service';
 
-// Asks for the user's password, then deletes their account. Emits `deleted` once the API has done it.
 @Component({
   selector: 'app-delete-account',
   templateUrl: './delete-account.html',

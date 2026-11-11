@@ -24,7 +24,6 @@ export class SellerProfile {
   private readonly users = inject(UserService);
   private readonly reviewService = inject(ReviewService);
 
-  // null while loading, undefined when no seller has this username.
   protected readonly seller = toSignal(this.username$.pipe(switchMap((username) => this.users.getPublicProfile(username))), {
     initialValue: null,
   });

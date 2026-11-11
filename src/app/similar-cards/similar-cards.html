@@ -8,7 +8,6 @@
           Similar to “{{ result.term }}”
         }
       </h2>
-      <p class="hint">Ranked by how alike the cards are in element, kind, stage, rarity and price.</p>
 
       <ul class="list">
         @for (item of result.cards; track item.card.cardId) {
@@ -21,10 +20,7 @@
               </span>
               <span class="meta">{{ cardMeta(item.card) }}</span>
               <span class="name">{{ item.card.cardName }}</span>
-              <span class="row">
-                <span class="price">{{ item.card.cardPrice | currency: 'THB' : 'symbol-narrow' : '1.0-0' }}</span>
-                <span class="match">{{ item.similarity | percent: '1.0-0' }} match</span>
-              </span>
+              <span class="price">{{ item.card.cardPrice | currency: 'THB' : 'symbol-narrow' : '1.0-0' }}</span>
             </button>
           </li>
         }

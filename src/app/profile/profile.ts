@@ -45,7 +45,6 @@ export class Profile {
     return this.reviews().filter((review) => myOrderIds.has(review.orderId) && isReviewed(review)).length;
   });
 
-  // Reviews other buyers wrote on orders for this user's cards, newest first.
   protected readonly receivedReviews = toSignal(
     this.users.getCurrentUser().pipe(switchMap((user) => this.reviewService.getReviewsForSeller(user.username))),
     { initialValue: [] }
@@ -55,7 +54,6 @@ export class Profile {
     this.auth.logout().subscribe(() => this.router.navigate(['/login']));
   }
 
-  // The API has already signed the user out.
   protected accountDeleted(): void {
     this.deleting.set(false);
     this.router.navigate(['/login'], { state: { accountDeleted: true } });

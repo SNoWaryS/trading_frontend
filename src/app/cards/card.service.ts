@@ -7,14 +7,11 @@ import { CardListing, ListingChanges, NewCardListing, SimilarSearch } from './ca
 
 const LISTINGS_URL = `${API_URL}/api/listings`;
 
-// Turns an API error into an Error with the API's message, so forms can show it.
 function apiError(fallback: string) {
   return (error: HttpErrorResponse) =>
     throwError(() => new Error(typeof error.error?.message === 'string' ? error.error.message : fallback));
 }
 
-// Cards for sale (the CARDS table), through the listings API.
-// The listings are kept here once loaded, so every page shares them and sees changes straight away.
 @Injectable({ providedIn: 'root' })
 export class CardService {
   private readonly http = inject(HttpClient);
@@ -22,13 +19,11 @@ export class CardService {
   private readonly listings = new BehaviorSubject<CardListing[] | null>(null);
   private loading = false;
 
-  // Every listing, newest first. Asks the API again each time, and shows the listings already loaded meanwhile.
   getListings(): Observable<CardListing[]> {
     this.load();
     return this.listings.pipe(filter((listings): listings is CardListing[] => listings !== null));
   }
 
-  // The logged-in user's listings.
   getMyListings(): Observable<CardListing[]> {
     return combineLatest([this.getListings(), this.auth.user$]).pipe(
       map(([listings, user]) => listings.filter((card) => card.sellerName === user?.username))
@@ -39,14 +34,11 @@ export class CardService {
     return card.sellerName === this.auth.username();
   }
 
-  // Other users' cards for sale most like what was searched for, most alike first, leaving out the cards whose
-  // name matches. The API compares cards as vectors (element, kind, stage, rarity and price) with cosine similarity.
   getSimilar(search: string, element: string | null): Observable<SimilarSearch> {
     const params: Record<string, string> = element ? { search, element } : { search };
     return this.http.get<SimilarSearch>(`${LISTINGS_URL}/similar`, { params });
   }
 
-  // Sends the listing as a form, so the photo can go with it. The API checks the card is in the catalog.
   addListing(card: NewCardListing): Observable<CardListing> {
     const form = new FormData();
     form.set('catalogId', String(card.catalogId));
@@ -77,7 +69,6 @@ export class CardService {
     );
   }
 
-  // After the user orders a card, so the pages stop offering it straight away.
   markSold(cardId: number): void {
     const listings = this.listings.value;
     if (listings) {
@@ -85,7 +76,6 @@ export class CardService {
     }
   }
 
-  // A cancelled order puts its card back on sale.
   markAvailable(cardId: number): void {
     const listings = this.listings.value;
     if (listings) {
@@ -103,7 +93,6 @@ export class CardService {
         this.loading = false;
         this.listings.next(listings);
       },
-      // Keep what is already shown; with nothing loaded yet, show no cards.
       error: () => {
         this.loading = false;
         this.listings.next(this.listings.value ?? []);

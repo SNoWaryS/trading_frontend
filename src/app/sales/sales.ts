@@ -14,7 +14,6 @@ interface SaleRow {
   card: CardListing;
 }
 
-// Orders for the logged-in user's cards: check the payment slip, send the card to the buyer, then mark it shipped.
 @Component({
   selector: 'app-sales',
   imports: [CurrencyPipe, OrdersTabs, SiteHeader],
@@ -26,7 +25,6 @@ export class Sales {
   private readonly sales = toSignal(this.orders.getSales(), { initialValue: [] });
   private readonly listings = toSignal(inject(CardService).getListings(), { initialValue: [] });
 
-  // Newest first, as the API sends them. An ordered card cannot be removed, so every sale has its card.
   protected readonly rows = computed<SaleRow[]>(() =>
     this.sales().flatMap((sale) => {
       const card = this.listings().find((listing) => listing.cardId === sale.cardId);
@@ -40,7 +38,6 @@ export class Sales {
   protected readonly statusLabels = ORDER_STATUS_LABELS;
   protected readonly cardMeta = cardMeta;
 
-  // For a slip that is wrong or fake: the order stays as history and the card goes back on sale.
   protected cancel(row: SaleRow): void {
     if (!confirm(`Cancel ${row.sale.buyerName}'s order for ${row.card.cardName}? The card goes back on sale.`)) {
       return;

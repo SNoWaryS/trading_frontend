@@ -81,7 +81,6 @@
   text-transform: uppercase;
 }
 
-/* Body font, because the display font's 1 looks like a capital I. */
 .stats dd {
   margin: 6px 0 0;
   font-size: 28px;
@@ -190,7 +189,6 @@
   background: linear-gradient(160deg, var(--green-100), var(--green-200));
 }
 
-/* The source image has a stray icon on its left edge, so the sides are cropped. */
 .picture img,
 .review-picture img {
   display: block;

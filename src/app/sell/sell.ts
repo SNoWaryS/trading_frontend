@@ -7,9 +7,8 @@ import { CardListing, cardMeta } from '../cards/card-listing';
 import { CardService } from '../cards/card.service';
 import { SiteHeader } from '../site-header/site-header';
 
-const MAX_PRICE = 9_999_999_999; // Largest whole-baht value that fits DECIMAL(12,2).
+const MAX_PRICE = 9_999_999_999;
 
-// A message shown on one card, after editing or removing it failed.
 interface CardError {
   cardId: number;
   message: string;

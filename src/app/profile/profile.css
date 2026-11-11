@@ -125,7 +125,6 @@
   outline-offset: 2px;
 }
 
-/* Body font, because the display font's 1 looks like a capital I. */
 .stat-value {
   font-size: 28px;
   font-weight: 500;
@@ -234,7 +233,6 @@
   background: #ffffff;
 }
 
-/* The source image has a stray icon on its left edge, so the sides are cropped. */
 .review-picture img {
   display: block;
   width: 100%;

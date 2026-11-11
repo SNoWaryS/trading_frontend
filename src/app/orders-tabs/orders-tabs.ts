@@ -1,7 +1,6 @@
 import { Component } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 
-// Switches between the cards the user bought and the orders for cards they sell.
 @Component({
   selector: 'app-orders-tabs',
   imports: [RouterLink, RouterLinkActive],
